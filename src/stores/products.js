@@ -1,5 +1,7 @@
+// src/stores/products.js
 import { defineStore } from 'pinia'
 import axios from 'axios'
+
 
 export const useProductsStore = defineStore('products', {
   state: () => ({
@@ -10,8 +12,12 @@ export const useProductsStore = defineStore('products', {
     async fetchAll() {
       this.loading = true
       try {
-        const { data } = await axios.get('/api/products')
+        // AQUI: endpoint da sua API (antes era '/api/products')
+        const { data } = await axios.get('/api/produtos')
+        console.log('⚙️ PRODUCTS FROM API:', data)
         this.list = data
+      } catch (err) {
+        console.error('❌ erro ao buscar produtos:', err)
       } finally {
         this.loading = false
       }
