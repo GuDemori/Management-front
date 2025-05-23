@@ -2,9 +2,10 @@
   <v-form ref="formRef" @submit.prevent="submit">
     <v-tabs v-model="tab" align-tabs="center" grow>
       <v-tab>
-        <v-icon left>mdi-account</v-icon>
-        Dados Pessoais
+        <v-icon left>mdi-domain</v-icon>
+        Dados do Fornecedor
       </v-tab>
+
       <v-tab>
         <v-icon left>mdi-phone</v-icon>
         Contato
@@ -12,38 +13,27 @@
     </v-tabs>
 
     <v-window v-model="tab" class="mt-4">
-      <!-- Aba Dados Pessoais -->
+      <!-- Aba Dados do Fornecedor -->
       <v-window-item :value="0">
         <v-text-field
-          v-model="form.fullName"
-          label="Nome Completo"
+          v-model="form.name"
+          label="Nome da Empresa"
           :rules="nameRules"
-          placeholder="Ex.: João da Silva"
-          prepend-icon="mdi-account"
+          placeholder="Ex.: Doces Giacomini"
+          prepend-icon="mdi-domain"
           variant="outlined"
           density="compact"
           required
         />
 
         <v-text-field
-          v-model="form.cpfCnpj"
-          label="CPF ou CNPJ"
-          :rules="cpfCnpjRules"
-          placeholder="Ex.: 000.000.000-00 ou 00.000.000/0000-00"
+          v-model="form.cnpj"
+          label="CNPJ"
+          :rules="cnpjRules"
+          placeholder="Ex.: 00.000.000/0000-00"
           prepend-icon="mdi-card-account-details"
           variant="outlined"
           density="compact"
-          required
-        />
-
-        <v-text-field
-          v-model="form.birthDate"
-          label="Data de Nascimento"
-          placeholder="Ex.: 01/01/2000"
-          prepend-icon="mdi-calendar"
-          variant="outlined"
-          density="compact"
-          type="date"
           required
         />
       </v-window-item>
@@ -86,7 +76,7 @@
           v-model="form.email"
           label="E-mail"
           :rules="emailRules"
-          placeholder="Ex.: exemplo@email.com"
+          placeholder="Ex.: exemplo@fornecedor.com"
           prepend-icon="mdi-email"
           variant="outlined"
           density="compact"
@@ -115,12 +105,12 @@ const tab = ref(0)
 
 const nameRules = [
   v => !!v || 'Nome é obrigatório',
-  v => (v && v.length >= 5) || 'Nome deve ter ao menos 5 caracteres',
+  v => (v && v.length >= 3) || 'Nome deve ter ao menos 3 caracteres',
 ]
 
-const cpfCnpjRules = [
-  v => !!v || 'CPF ou CNPJ é obrigatório',
-  v => (v && v.length >= 11) || 'Informe um CPF/CNPJ válido',
+const cnpjRules = [
+  v => !!v || 'CNPJ é obrigatório',
+  v => (v && v.length >= 14) || 'Informe um CNPJ válido',
 ]
 
 const emailRules = [
