@@ -12,6 +12,8 @@
   "dependencies": {
     "@fontsource/roboto": "5.2.5",
     "@mdi/font": "7.4.47",
+    "@realfavicongenerator/generate-favicon": "^0.4.16",
+    "@realfavicongenerator/image-adapter-node": "^0.4.16",
     "axios": "^1.9.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
@@ -30,6 +32,7 @@
     "unplugin-vue-components": "^28.4.1",
     "unplugin-vue-router": "^0.12.0",
     "vite": "^6.2.2",
+    "vite-plugin-pages": "^0.33.0",
     "vite-plugin-vue-layouts-next": "^0.0.8",
     "vite-plugin-vuetify": "^2.1.1",
     "vue-router": "^4.5.0"

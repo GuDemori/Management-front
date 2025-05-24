@@ -1,56 +1,87 @@
 <template>
-    <v-card elevation="2" max-width="400" class="mx-auto pa-4">
-      <v-card-title class="justify-center text-h6">
-        Faça o Login
-      </v-card-title>
-  
+  <v-container class="fill-height d-flex align-center justify-center">
+    <v-card class="pa-6" max-width="400">
+      <v-card-title class="text-h5">Login</v-card-title>
       <v-card-text>
-        <v-form @submit.prevent="onSubmit">
+        <v-form ref="form" @submit.prevent="login">
           <v-text-field
             v-model="email"
-            label="E-mail"
+            label="Email"
             type="email"
-            required
+            :rules="[rules.required, rules.email]"
+            prepend-inner-icon="mdi-email"
           />
-  
+
           <v-text-field
             v-model="password"
             label="Senha"
             type="password"
-            required
+            :rules="[rules.required]"
+            prepend-inner-icon="mdi-lock"
           />
-  
+
+          <v-alert
+            v-if="errorMessage"
+            type="error"
+            class="mb-4"
+            dense
+          >
+            {{ errorMessage }}
+          </v-alert>
+
           <v-btn
             type="submit"
             color="primary"
+            :loading="loading"
             block
-            class="mt-4"
           >
             Entrar
           </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  import { useRouter } from 'vue-router'
-  
-  const email = ref('')
-  const password = ref('')
-  const router = useRouter()
-  
-  function onSubmit() {
-    // aqui você chamaria sua API de autenticação…
-    // por enquanto, só vamos redirecionar para a home:
-    router.push('/')
+  </v-container>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import axios from 'axios';
+
+const email = ref('');
+const password = ref('');
+const loading = ref(false);
+const errorMessage = ref('');
+
+const rules = {
+  required: v => !!v || 'Este campo é obrigatório',
+  email: v => /.+@.+\..+/.test(v) || 'Email inválido'
+};
+
+const login = async () => {
+  loading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const response = await axios.post('http://localhost:8000/api/login', {
+      email: email.value,
+      password: password.value
+    });
+
+    const token = response.data.token;
+    localStorage.setItem('token', token);
+
+    // Redireciona para a dashboard ou home
+    window.location.href = '/dashboard';
+  } catch (error) {
+    errorMessage.value = 'Usuário ou senha inválidos.';
+  } finally {
+    loading.value = false;
   }
-  
-  // informa ao file-based router que
-  // esta página deve usar o layout “login.vue”
-  definePageMeta({
-    layout: 'login'
-  })
-  </script>
-  
+};
+</script>
+
+<style scoped>
+.fill-height {
+  height: 100vh;
+}
+</style>

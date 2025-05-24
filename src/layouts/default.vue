@@ -24,9 +24,9 @@
       <v-list>
         <v-list-item to="/produtos" title="Produtos" prepend-icon="mdi-package-variant" />
         <v-list-item to="/clients" title="Clientes" prepend-icon="mdi-account-multiple"/>
-        <v-list-item title="Pedidos" prepend-icon=""/>
-        <v-list-item title="Fornecedores" prepend-icon=""/>
-        <v-list-item title="Estoque" prepend-icon="mdi-package-variant-closed"/>
+        <v-list-item to="/pedidos" title="Pedidos" prepend-icon="mdi-truck-fast"/>
+        <v-list-item to="/fornecedores" title="Fornecedores" prepend-icon="mdi-account-group"/>
+        <v-list-item to="/estoque" title="Estoque" prepend-icon="mdi-package-variant-closed"/>
       </v-list>
     </v-navigation-drawer>
 
@@ -51,7 +51,7 @@
         <v-icon class="text-white">mdi-magnify</v-icon>
       </v-btn>
       <v-btn icon>
-        <v-icon class="text-white">mdi-heart</v-icon>
+        <v-icon class="text-white">mdi-cart</v-icon>
       </v-btn>
       <v-btn icon>
         <v-icon class="text-white">mdi-dots-vertical</v-icon>

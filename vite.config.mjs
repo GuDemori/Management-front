@@ -1,31 +1,30 @@
-// Plugins
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import Fonts from 'unplugin-fonts/vite'
-import Layouts from 'vite-plugin-vue-layouts-next'
-import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'unplugin-vue-router/vite'
+// vite.config.mjs
+import AutoImport         from 'unplugin-auto-import/vite'
+import Components         from 'unplugin-vue-components/vite'
+import Fonts              from 'unplugin-fonts/vite'
+import Layouts            from 'vite-plugin-vue-layouts-next'
+import Pages              from 'vite-plugin-pages'
+import Vue                from '@vitejs/plugin-vue'
+import VueRouter          from 'unplugin-vue-router/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
-// Utilities
-import { defineConfig } from 'vite'
+import { defineConfig }   from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     VueRouter(),
     Layouts(),
-    Vue({
-      template: { transformAssetUrls },
+    Pages({
+      dirs: 'src/pages',
+      extensions: ['vue'],
+      importMode: 'async',
     }),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
+    Vue({ template: { transformAssetUrls } }),
     Vuetify({
       autoImport: true,
-      styles: {
-        configFile: 'src/styles/settings.scss',
-      },
+      styles: { configFile: 'src/styles/settings.scss' },
     }),
     Components(),
     Fonts({
@@ -40,16 +39,13 @@ export default defineConfig({
       imports: [
         'vue',
         VueRouterAutoImports,
-        {
-          'pinia': ['defineStore', 'storeToRefs'],
-        },
+        { pinia: ['defineStore','storeToRefs'] },
       ],
-      eslintrc: {
-        enabled: true,
-      },
+      eslintrc: { enabled: true },
       vueTemplate: true,
     }),
   ],
+
   optimizeDeps: {
     exclude: [
       'vuetify',
@@ -59,32 +55,36 @@ export default defineConfig({
       'unplugin-vue-router/data-loaders/basic',
     ],
   },
+
   define: { 'process.env': {} },
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-    extensions: [
-      '.js',
-      '.json',
-      '.jsx',
-      '.mjs',
-      '.ts',
-      '.tsx',
-      '.vue',
-    ],
+    extensions: ['.js','.json','.jsx','.mjs','.ts','.tsx','.vue'],
   },
+
+  // <<< AQUI você configura a porta e o proxy para seu back-end >>>
   server: {
     port: 3000,
+    proxy: {
+      // qualquer request que comece com /api
+      // será redirecionado para http://localhost:8000
+      '/api': {
+        target: 'http://localhost:8000',    // ajuste para a porta/host do seu back
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        // se seu back consumir sem o prefixo, use:
+        // rewrite: (path) => path.replace(/^\/api/, '')
+      },
+    },
   },
+
   css: {
     preprocessorOptions: {
-      sass: {
-        api: 'modern-compiler',
-      },
-      scss: {
-        api: 'modern-compiler',
-      },
+      sass: { api: 'modern-compiler' },
+      scss: { api: 'modern-compiler' },
     },
   },
 })
