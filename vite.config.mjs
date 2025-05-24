@@ -3,6 +3,7 @@ import AutoImport         from 'unplugin-auto-import/vite'
 import Components         from 'unplugin-vue-components/vite'
 import Fonts              from 'unplugin-fonts/vite'
 import Layouts            from 'vite-plugin-vue-layouts-next'
+import Pages              from 'vite-plugin-pages'
 import Vue                from '@vitejs/plugin-vue'
 import VueRouter          from 'unplugin-vue-router/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
@@ -15,6 +16,11 @@ export default defineConfig({
   plugins: [
     VueRouter(),
     Layouts(),
+    Pages({
+      dirs: 'src/pages',
+      extensions: ['vue'],
+      importMode: 'async',
+    }),
     Vue({ template: { transformAssetUrls } }),
     Vuetify({
       autoImport: true,
