@@ -1,6 +1,17 @@
 <template>
-  <v-container class="fill-height d-flex align-center justify-center">
-    <v-card class="pa-6" max-width="400">
+  <v-container class="login-container">
+    <div class="logo-container">
+      <v-img
+        src="@/assets/logo.png"
+        alt="Logo"
+        width="145"
+        height="145"
+        contain
+        class="logo"
+      />
+    </div>
+
+    <v-card class="pa-6" width="400">
       <v-card-title class="text-h5">Login</v-card-title>
       <v-card-text>
         <v-form ref="form" @submit.prevent="login">
@@ -14,10 +25,12 @@
 
           <v-text-field
             v-model="password"
+            :type="showPassword ? 'text' : 'password'"
             label="Senha"
-            type="password"
             :rules="[rules.required]"
             prepend-inner-icon="mdi-lock"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append-inner="showPassword = !showPassword"
           />
 
           <v-alert
@@ -40,48 +53,95 @@
         </v-form>
       </v-card-text>
     </v-card>
+
+    <footer class="footer">
+      © Sabor Doce
+    </footer>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref } from 'vue'
+import axios from 'axios'
 
-const email = ref('');
-const password = ref('');
-const loading = ref(false);
-const errorMessage = ref('');
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+const showPassword = ref(false)
 
 const rules = {
   required: v => !!v || 'Este campo é obrigatório',
   email: v => /.+@.+\..+/.test(v) || 'Email inválido'
-};
+}
 
 const login = async () => {
-  loading.value = true;
-  errorMessage.value = '';
+  loading.value = true
+  errorMessage.value = ''
 
   try {
     const response = await axios.post('http://localhost:8000/api/login', {
       email: email.value,
       password: password.value
-    });
+    })
 
-    const token = response.data.token;
-    localStorage.setItem('token', token);
+    const token = response.data.token
+    localStorage.setItem('token', token)
 
-    // Redireciona para a dashboard ou home
-    window.location.href = '/dashboard';
+    window.location.href = '/dashboard'
   } catch (error) {
-    errorMessage.value = 'Usuário ou senha inválidos.';
+    errorMessage.value = 'Usuário ou senha inválidos.'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>
 
 <style scoped>
-.fill-height {
+.login-container {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.logo-container {
+  margin-bottom: 24px;
+}
+
+.logo {
+  animation: fadeIn 1.5s ease-in-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.v-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.85rem;
+  color: #888;
 }
 </style>
