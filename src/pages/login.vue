@@ -4,8 +4,8 @@
       <v-img
         src="@/assets/logo.png"
         alt="Logo"
-        width="145"
-        height="145"
+        width="120"
+        height="120"
         contain
         class="logo"
       />
