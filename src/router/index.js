@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import Login from '@/pages/login.vue'
-import Clients from '@/pages/Clients.vue'
 import Fornecedores from '@/pages/fornecedores.vue'
 import Produtos from '@/pages/Produtos.vue'
+import Pedidos from '@/pages/pedidos.vue'
+import Estoque from '@/pages/estoque.vue'
+import Clientes from '@/pages/clientes.vue'
 
 const routes = [
   {

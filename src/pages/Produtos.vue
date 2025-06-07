@@ -54,6 +54,12 @@
 import { ref, reactive, computed } from 'vue'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import ProductForm from '@/components/productForm.vue'
+import { useProductsStore } from '@/stores/products'
+
+const store = useProductsStore()
+const formRef = ref(null)
+const dialog = ref(false)
 
 // array local de teste
 const productsList = ref([
