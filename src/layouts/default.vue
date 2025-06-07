@@ -23,7 +23,7 @@
           :active-class="'active-link'"
         />
         <v-list-item 
-          to="/clients" 
+          to="/clientes" 
           title="Clientes" 
           prepend-icon="mdi-account-multiple"
           :active-class="'active-link'"
