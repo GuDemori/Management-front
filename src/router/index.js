@@ -5,7 +5,7 @@ import Fornecedores from '@/pages/fornecedores.vue'
 import Produtos from '@/pages/Produtos.vue'
 import Pedidos from '@/pages/Pedidos.vue'
 import Estoque from '@/pages/estoque.vue'
-import Clients from '@/pages/Clients.vue'
+import Clients from '@/pages/clientes.vue'
 
 const routes = [
   {

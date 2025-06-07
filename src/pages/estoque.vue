@@ -40,8 +40,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import StockForm from '@/components/stockForm.vue'
-
+import stockForm from '@/components/stockform.vue'
 
 const dialog = ref(false)
 const search = ref('')
