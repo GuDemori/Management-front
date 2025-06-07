@@ -97,3 +97,10 @@ import { ref } from 'vue'
 
 const drawer = ref(true)
 </script>
+
+<style scoped>
+.active-link {
+  background-color: darkgoldenrod !important;
+  color: white !important;
+}
+</style>

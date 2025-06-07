@@ -25,10 +25,12 @@
 
           <v-text-field
             v-model="password"
+            :type="showPassword ? 'text' : 'password'"
             label="Senha"
-            type="password"
             :rules="[rules.required]"
             prepend-inner-icon="mdi-lock"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append-inner="showPassword = !showPassword"
           />
 
           <v-alert
@@ -52,6 +54,10 @@
       </v-card-text>
     </v-card>
   </v-container>
+    <footer class="footer">
+      © Sabor Doce
+    </footer>
+
 </template>
 
 <script setup>
@@ -92,7 +98,44 @@ const login = async () => {
 </script>
 
 <style scoped>
-.fill-height {
+.login-container {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.logo-container {
+  margin-bottom: 24px;
+}
+.logo {
+  animation: fadeIn 1.5s ease-in-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+.logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.v-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+.footer {
+  position: absolute;
+  bottom: 20px;
+  font-size: 0.85rem;
+  color: #888;
 }
 </style>
