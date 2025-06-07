@@ -1,17 +1,23 @@
 <template>
   <v-app>
+    <!-- MENU LATERAL -->
     <v-navigation-drawer
       v-model="drawer"
       app
       permanent
     >
-      <v-list-item to="/">
-        <v-list-item-title
-          class="text-h5 font-weight-bold text-center pa-4"
+      <v-list-item to="/" title="Sabor Doce" subtitle="" />
+
+      <!-- Botão para recolher -->
+      <div class="d-flex align-center justify-center" style="height: 100px;">
+        <v-btn
+          icon
+          @click="drawer = false"
+          class="border border-grey-darken-2 rounded-xl"
         >
-          Sabor Doce
-        </v-list-item-title>
-      </v-list-item>
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+      </div>
 
       <v-divider />
 
@@ -49,8 +55,18 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app flat style="background-color: darkgoldenrod;">
-      <v-btn icon @click="drawer = !drawer">
+    <!-- BARRA SUPERIOR (sem imagem) -->
+    <v-app-bar
+      app
+      color="teal-darken-4"
+      flat
+    >
+      <!-- Botão de menu quando drawer está fechado -->
+      <v-btn
+        icon
+        v-if="!drawer"
+        @click="drawer = true"
+      >
         <v-icon class="text-white">mdi-menu</v-icon>
       </v-btn>
 
@@ -67,6 +83,7 @@
       </v-btn>
     </v-app-bar>
 
+    <!-- CONTEÚDO PRINCIPAL -->
     <v-main>
       <v-container fluid>
         <router-view />
@@ -80,10 +97,3 @@ import { ref } from 'vue'
 
 const drawer = ref(true)
 </script>
-
-<style scoped>
-.active-link {
-  background-color: darkgoldenrod !important;
-  color: white !important;
-}
-</style>

@@ -103,7 +103,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
-import ProductForm from '@/components/ProductForm.vue'
+import productForm from '@/components/productForm.vue'
 import { useProductsStore } from '@/stores/products'
 
 const store = useProductsStore()
