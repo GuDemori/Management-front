@@ -1,6 +1,17 @@
 <template>
-  <v-container class="fill-height d-flex align-center justify-center">
-    <v-card class="pa-6" max-width="400">
+  <v-container class="login-container">
+    <div class="logo-container">
+      <v-img
+        src="@/assets/logo.png"
+        alt="Logo"
+        width="150"
+        height="150"
+        contain
+        class="logo"
+      />
+    </div>
+
+    <v-card class="pa-6" width="400">
       <v-card-title class="text-h5">Login</v-card-title>
       <v-card-text>
         <v-form ref="form" @submit.prevent="login">

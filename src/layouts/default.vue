@@ -22,11 +22,36 @@
       <v-divider />
 
       <v-list>
-        <v-list-item to="/produtos" title="Produtos" prepend-icon="mdi-package-variant" />
-        <v-list-item to="/clients" title="Clientes" prepend-icon="mdi-account-multiple"/>
-        <v-list-item to="/pedidos" title="Pedidos" prepend-icon="mdi-truck-fast"/>
-        <v-list-item to="/fornecedores" title="Fornecedores" prepend-icon="mdi-account-group"/>
-        <v-list-item to="/estoque" title="Estoque" prepend-icon="mdi-package-variant-closed"/>
+        <v-list-item 
+          to="/produtos" 
+          title="Produtos" 
+          prepend-icon="mdi-package-variant" 
+          :active-class="'active-link'"
+        />
+        <v-list-item 
+          to="/clientes" 
+          title="Clientes" 
+          prepend-icon="mdi-account-multiple"
+          :active-class="'active-link'"
+        />
+        <v-list-item 
+          to="/pedidos" 
+          title="Pedidos" 
+          prepend-icon="mdi-truck-fast"
+          :active-class="'active-link'"
+        />
+        <v-list-item 
+          to="/fornecedores" 
+          title="Fornecedores" 
+          prepend-icon="mdi-account-group"
+          :active-class="'active-link'"
+        />
+        <v-list-item 
+          to="/estoque" 
+          title="Estoque" 
+          prepend-icon="mdi-package-variant-closed"
+          :active-class="'active-link'"
+        />
       </v-list>
     </v-navigation-drawer>
 
