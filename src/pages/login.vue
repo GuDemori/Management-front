@@ -68,6 +68,7 @@ const email = ref('');
 const password = ref('');
 const loading = ref(false);
 const errorMessage = ref('');
+const showPassword = ref(false);
 
 const rules = {
   required: v => !!v || 'Este campo é obrigatório',
@@ -75,26 +76,29 @@ const rules = {
 };
 
 const login = async () => {
-  loading.value = true;
-  errorMessage.value = '';
+  loading.value = true
+  errorMessage.value = ''
 
   try {
-    const response = await axios.post('http://localhost:8000/api/login', {
+    const response = await axios.post('/api/login', {
       email: email.value,
       password: password.value
-    });
+    })
+    console.log('LOGIN RESPONSE ▶', response.data)
 
-    const token = response.data.token;
-    localStorage.setItem('token', token);
+    const token = response.data.token || response.data.access_token
+    if (!token) throw new Error('Token não retornado pelo backend')
 
-    // Redireciona para a dashboard ou home
-    window.location.href = '/dashboard';
-  } catch (error) {
-    errorMessage.value = 'Usuário ou senha inválidos.';
+    localStorage.setItem('token', token)
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+    window.location.href = '/'
+  } catch (err) {
+    errorMessage.value = 'Usuário ou senha inválidos.'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>
 
 <style scoped>

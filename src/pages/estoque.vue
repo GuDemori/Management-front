@@ -40,8 +40,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import stockForm from '@/components/stockform.vue'
 
+const loading = ref(false)
+const error = ref('')
 const dialog = ref(false)
 const search = ref('')
 const selectedStock = ref(null)
@@ -54,16 +57,18 @@ const headers = [
   { text: 'Ações', value: 'actions', sortable: false },
 ]
 
-const fetchStocks = async () => {
-  // Exemplo de fetch
-  stocks.value = [
-    {
-      id: 1,
-      productName: 'Doce de Leite',
-      quantity: 120,
-      location: 'Corredor 1 - Prateleira 2 - Gaveta 3',
-    },
-  ]
+async function fetchStocks() {
+  loading.value = true
+  error.value = ''
+  try {
+    const { data } = await axios.get('/api/stock')
+    stocks.value = data
+  } catch (err) {
+    console.error('❌ Erro ao buscar estoque:', err)
+    error.value = err.response?.data?.message || 'Não foi possível carregar o estoque.'
+  } finally {
+    loading.value = false
+  }
 }
 
 const openDialog = () => {
@@ -80,9 +85,16 @@ const editStock = (stock) => {
   dialog.value = true
 }
 
-const deleteStock = (id) => {
-  // Aqui entraria a lógica de exclusão com confirmação
-  stocks.value = stocks.value.filter(s => s.id !== id)
+function deleteStock(id) {
+  if (!confirm('Deseja realmente excluir este registro de estoque?')) return
+  axios
+    .delete(`/api/stock/${id}`)
+    .then(() => fetchStocks())
+    .catch(() => {
+      error.value = 'Erro ao excluir registro.'
+    })
 }
+
 onMounted(fetchStocks)
+
 </script>

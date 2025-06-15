@@ -12,9 +12,7 @@ export const useProductsStore = defineStore('products', {
     async fetchAll() {
       this.loading = true
       try {
-        // AQUI: endpoint da sua API (antes era '/api/products')
-        const { data } = await axios.get('/api/produtos')
-        console.log('⚙️ PRODUCTS FROM API:', data)
+        const { data } = await axios.get('/api/products')
         this.list = data
       } catch (err) {
         console.error('❌ erro ao buscar produtos:', err)
