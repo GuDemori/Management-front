@@ -22,33 +22,38 @@
       <v-divider />
 
       <v-list>
-        <v-list-item 
+        <v-list-item
+          v-if="isAdmin || isV1"
           to="/produtos" 
           title="Produtos" 
           prepend-icon="mdi-package-variant" 
           :active-class="'active-link'"
         />
         <v-list-item 
+          v-if="isAdmin"
           to="/clientes" 
           title="Clientes" 
           prepend-icon="mdi-account-multiple"
           :active-class="'active-link'"
         />
         <v-list-item 
+          v-if="isAdmin"
           to="/pedidos" 
           title="Pedidos" 
           prepend-icon="mdi-truck-fast"
           :active-class="'active-link'"
         />
         <v-list-item 
+          v-if="isAdmin"
           to="/fornecedores" 
           title="Fornecedores" 
           prepend-icon="mdi-account-group"
           :active-class="'active-link'"
         />
-        <v-list-item 
-          to="/estoque" 
-          title="Estoque" 
+        <v-list-item
+          v-if="isAdmin"
+          to="/estoque"
+          title="Estoque"
           prepend-icon="mdi-package-variant-closed"
           :active-class="'active-link'"
         />
@@ -93,9 +98,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 
 const drawer = ref(true)
+const userRole = ref(null)
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('/api/users')
+    userRole.value = data.role
+  } catch {
+    userRole.value = null
+  }
+})
+
+const isAdmin = computed(() => userRole.value === 'admin')
+const isV1 = computed(() => userRole.value === 'v1')
+
 </script>
 
 <style scoped>
