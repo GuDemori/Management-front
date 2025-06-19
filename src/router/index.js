@@ -3,9 +3,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/pages/login.vue'
 import Fornecedores from '@/pages/fornecedores.vue'
 import Produtos from '@/pages/Produtos.vue'
-import Pedidos from '@/pages/Pedidos.vue'
+import Pedidos from '@/pages/pedidos.vue'
 import Estoque from '@/pages/estoque.vue'
 import Clients from '@/pages/clientes.vue'
+import Registro from '@/pages/registro.vue'
+
 
 const routes = [
   {
@@ -13,6 +15,9 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { layout: 'login' },
+     children: [
+      { path: '', name: 'LoginPage', component: () => import('@/pages/login.vue') }
+    ],
   },
   {
     path: '/clientes',
@@ -33,6 +38,15 @@ const routes = [
     path: '/pedidos',
     name: 'Pedidos',
     component: Pedidos,
+  },
+  {
+    path: '/registro',
+    name: 'Registro',
+    component: Registro,
+    meta: { layout: 'login' },
+    children: [
+      { path: '', name: 'RegisterPage', component: () => import('@/pages/Registro.vue') }
+    ],
   },
   {
     path: '/estoque',
