@@ -8,7 +8,6 @@
     >
       <v-list-item to="/" title="Sabor Doce" subtitle="" />
 
-      <!-- Botão para recolher -->
       <div class="d-flex align-center justify-center" style="height: 100px;">
         <v-btn
           icon
@@ -23,30 +22,30 @@
 
       <v-list>
         <v-list-item
-          v-if="isAdmin || isV1"
-          to="/produtos" 
-          title="Produtos" 
-          prepend-icon="mdi-package-variant" 
+          v-if="isAdmin || isV1 || isClient"
+          to="/produtos"
+          title="Produtos"
+          prepend-icon="mdi-package-variant"
           :active-class="'active-link'"
         />
-        <v-list-item 
+        <v-list-item
           v-if="isAdmin"
-          to="/clientes" 
-          title="Clientes" 
+          to="/clientes"
+          title="Clientes"
           prepend-icon="mdi-account-multiple"
           :active-class="'active-link'"
         />
-        <v-list-item 
+        <v-list-item
           v-if="isAdmin"
-          to="/pedidos" 
-          title="Pedidos" 
+          to="/pedidos"
+          title="Pedidos"
           prepend-icon="mdi-truck-fast"
           :active-class="'active-link'"
         />
-        <v-list-item 
+        <v-list-item
           v-if="isAdmin"
-          to="/fornecedores" 
-          title="Fornecedores" 
+          to="/fornecedores"
+          title="Fornecedores"
           prepend-icon="mdi-account-group"
           :active-class="'active-link'"
         />
@@ -60,13 +59,12 @@
       </v-list>
     </v-navigation-drawer>
 
-    <!-- BARRA SUPERIOR (sem imagem) -->
+    <!-- BARRA SUPERIOR -->
     <v-app-bar
       app
       color="teal-darken-4"
       flat
     >
-      <!-- Botão de menu quando drawer está fechado -->
       <v-btn
         icon
         v-if="!drawer"
@@ -77,15 +75,9 @@
 
       <v-spacer />
 
-      <v-btn icon>
-        <v-icon class="text-white">mdi-magnify</v-icon>
-      </v-btn>
-      <v-btn icon>
-        <v-icon class="text-white">mdi-cart</v-icon>
-      </v-btn>
-      <v-btn icon>
-        <v-icon class="text-white">mdi-dots-vertical</v-icon>
-      </v-btn>
+      <v-btn icon><v-icon class="text-white">mdi-magnify</v-icon></v-btn>
+      <v-btn icon><v-icon class="text-white">mdi-cart</v-icon></v-btn>
+      <v-btn icon><v-icon class="text-white">mdi-dots-vertical</v-icon></v-btn>
     </v-app-bar>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -99,12 +91,23 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 
-const drawer = ref(true)
-const userRole = ref(null)
+const drawer    = ref(true)
+const userRole  = ref(null)
+const route     = useRoute()
+
+// nomes de rota em que NÃO queremos buscar /api/users
+const publicNames = ['LoginPage', 'RegisterPage']
 
 onMounted(async () => {
+  // se estivermos em qualquer rota pública, pulamos a chamada inteira
+  if (publicNames.includes(route.name)) {
+    userRole.value = null
+    return
+  }
+
   try {
     const { data } = await axios.get('/api/users')
     userRole.value = data.role
@@ -113,10 +116,11 @@ onMounted(async () => {
   }
 })
 
-const isAdmin = computed(() => userRole.value === 'admin')
-const isV1 = computed(() => userRole.value === 'v1')
-
+const isAdmin  = computed(() => userRole.value === 'admin')
+const isV1     = computed(() => userRole.value === 'v1')
+const isClient = computed(() => userRole.value === 'client')
 </script>
+
 
 <style scoped>
 .active-link {
