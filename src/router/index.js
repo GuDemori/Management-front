@@ -45,7 +45,7 @@ const routes = [
     component: Registro,
     meta: { layout: 'login' },
     children: [
-      { path: '', name: 'RegisterPage', component: () => import('@/pages/Registro.vue') }
+      { path: '', name: 'RegisterPage', component: () => import('@/pages/registro.vue') }
     ],
   },
   {
