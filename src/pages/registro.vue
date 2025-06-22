@@ -15,24 +15,31 @@
 
       <v-card-text class="py-0">
         <v-form ref="form" @submit.prevent="register" class="pt-0">
-          <!-- Abas de etapas -->
-          <v-tabs
-            v-model="step"
-            align-tabs="center"
-            grow
-            class="mb-1"
-            density="compact"
-          >
+          <v-tabs v-model="step" align-tabs="center" grow class="mb-1" density="compact">
             <v-tab key="0" class="px-0">CONTA</v-tab>
             <v-tab key="1" class="px-0">ENDEREÇO</v-tab>
           </v-tabs>
 
           <v-window v-model="step">
-            <!-- Etapa 1: Dados da conta -->
+            <!-- Etapa 1: Conta -->
             <v-window-item :value="0">
+              <v-select
+                v-model="establishment_type_id"
+                :items="establishmentTypes"
+                item-title="name"
+                item-value="id"
+                label="Tipo de Estabelecimento"
+                prepend-inner-icon="mdi-store"
+                :rules="[rules.required]"
+                variant="outlined"
+                density="compact"
+                hide-details="auto"
+                class="input-field"
+              />
+
               <v-text-field
                 v-model="name"
-                label="Nome Completo"
+                label="Nome do Estabelecimento"
                 :rules="[rules.required]"
                 prepend-inner-icon="mdi-account"
                 variant="outlined"
@@ -175,8 +182,9 @@
                 class="input-field"
               />
 
-              <v-text-field
+              <v-select
                 v-model="state"
+                :items="states"
                 label="Estado"
                 :rules="[rules.required]"
                 prepend-inner-icon="mdi-map"
@@ -233,17 +241,24 @@
       </v-card-text>
     </v-card>
 
-    <footer class="footer">
-      © Sabor Doce
-    </footer>
+    <footer class="footer">© Sabor Doce</footer>
   </v-container>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
 const step = ref(0)
+const loading = ref(false)
+const errorMessage = ref('')
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+const loadingCep = ref(false)
+const errorCep = ref('')
+
+// Dados do formulário
+const establishment_type_id = ref(null)
 const name = ref('')
 const email = ref('')
 const password = ref('')
@@ -257,14 +272,12 @@ const district = ref('')
 const city = ref('')
 const state = ref('')
 
-const loading = ref(false)
-const errorMessage = ref('')
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-
-// estados para lookup de CEP
-const loadingCep = ref(false)
-const errorCep = ref('')
+const establishmentTypes = ref([])
+const states = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+]
 
 const rules = {
   required: v => !!v || 'Este campo é obrigatório',
@@ -273,14 +286,24 @@ const rules = {
   match: v => v === password.value || 'As senhas não coincidem'
 }
 
+onMounted(() => {
+  fetchEstablishmentTypes()
+})
+
+const fetchEstablishmentTypes = async () => {
+  try {
+    const { data } = await axios.get('/api/establishment-types')
+    establishmentTypes.value = data
+  } catch {
+    console.error('Erro ao buscar tipos de estabelecimento')
+  }
+}
+
 const nextStep = () => (step.value = 1)
 const prevStep = () => (step.value = 0)
 
-async function fetchAddress() {
-  // limpa erros anteriores
+const fetchAddress = async () => {
   errorCep.value = ''
-
-  // só números
   const raw = cep.value.replace(/\D/g, '')
   if (raw.length !== 8) {
     errorCep.value = 'CEP deve ter 8 dígitos'
@@ -293,7 +316,6 @@ async function fetchAddress() {
     if (!data) {
       errorCep.value = 'CEP não encontrado'
     } else {
-      // preenche os campos de endereço
       street.value     = data.address
       district.value   = data.district
       city.value       = data.city
@@ -307,19 +329,19 @@ async function fetchAddress() {
   }
 }
 
-
 const register = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
     await axios.post('/api/register', {
+      establishment_type_id: establishment_type_id.value,
       name: name.value,
       email: email.value,
       password: password.value,
       password_confirmation: confirmPassword.value,
       document: document.value,
       cep: cep.value,
-      street: street.value,
+      address: street.value,
       number: number.value,
       complement: complement.value,
       district: district.value,
@@ -328,8 +350,7 @@ const register = async () => {
     })
     window.location.href = '/login'
   } catch (err) {
-    errorMessage.value =
-      err.response?.data?.message || 'Não foi possível registrar.'
+    errorMessage.value = err.response?.data?.message || 'Não foi possível registrar.'
   } finally {
     loading.value = false
   }

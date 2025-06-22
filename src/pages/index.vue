@@ -45,7 +45,7 @@
       </v-col>
 
       <!-- Clientes -->
-      <v-col cols="12" sm="6" md="4">
+      <v-col v-if="isAdmin" cols="12" sm="6" md="4">
         <v-card class="elevation-3 rounded-lg hoverable">
           <v-card-title>
             <v-icon left class="mr-2">mdi-account-multiple</v-icon>

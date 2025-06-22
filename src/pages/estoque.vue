@@ -9,9 +9,11 @@
       </v-col>
     </v-row>
 
+    <v-alert v-if="error" type="error" dismissible>{{ error }}</v-alert>
+
     <v-data-table
       :headers="headers"
-      :items="stocks"
+      :items="filteredStocks"
       :search="search"
       class="elevation-1"
     >
@@ -31,15 +33,14 @@
       </template>
     </v-data-table>
 
-    <!-- Diálogo -->
-    <v-dialog v-model="dialog" max-width="600px">
+    <v-dialog v-model="dialog" max-width="800px">
       <stock-form :stock="selectedStock" @close="closeDialog" @saved="fetchStocks" />
     </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import stockForm from '@/components/stockform.vue'
 
@@ -54,8 +55,13 @@ const headers = [
   { text: 'Produto', value: 'productName' },
   { text: 'Quantidade', value: 'quantity' },
   { text: 'Localização', value: 'location' },
+  { text: 'Endereço', value: 'address' },
+  { text: 'Cidade', value: 'city' },
+  { text: 'Estado', value: 'state' },
   { text: 'Ações', value: 'actions', sortable: false },
 ]
+
+const filteredStocks = computed(() => stocks.value.filter(s => s.isActive))
 
 async function fetchStocks() {
   loading.value = true
@@ -64,7 +70,6 @@ async function fetchStocks() {
     const { data } = await axios.get('/api/stock')
     stocks.value = data
   } catch (err) {
-    console.error('❌ Erro ao buscar estoque:', err)
     error.value = err.response?.data?.message || 'Não foi possível carregar o estoque.'
   } finally {
     loading.value = false
@@ -86,15 +91,14 @@ const editStock = (stock) => {
 }
 
 function deleteStock(id) {
-  if (!confirm('Deseja realmente excluir este registro de estoque?')) return
+  if (!confirm('Deseja realmente inativar este estoque?')) return
   axios
-    .delete(`/api/stock/${id}`)
+    .patch(`/api/stock/${id}/deactivate`)
     .then(() => fetchStocks())
     .catch(() => {
-      error.value = 'Erro ao excluir registro.'
+      error.value = 'Erro ao inativar estoque.'
     })
 }
 
 onMounted(fetchStocks)
-
 </script>
