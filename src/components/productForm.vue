@@ -1,65 +1,84 @@
 <template>
   <v-form ref="formRef" @submit.prevent="submit">
     <v-tabs v-model="tab" align-tabs="center" grow>
-      <v-tab>
-        <v-icon left>mdi-package-variant</v-icon>
-        Informações do Produto
-      </v-tab>
-      <v-tab>
-        <v-icon left>mdi-domain</v-icon>
-        Dados Comerciais
-      </v-tab>
+      <v-tab><v-icon left>mdi-tag</v-icon>Geral</v-tab>
+      <v-tab><v-icon left>mdi-domain</v-icon>Comercial</v-tab>
+      <v-tab><v-icon left>mdi-tag-multiple</v-icon>Apelidos</v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="mt-4">
-      <!-- Aba 1: Informações do Produto -->
+      <!-- Geral -->
       <v-window-item :value="0">
-        <v-text-field
-          v-model="form.nome"
-          label="Nome do Produto"
-          :rules="nameRules"
-          placeholder="Ex.: Bala Recheada"
-          prepend-icon="mdi-tag"
-          variant="outlined"
-          density="compact"
-          required
+        <v-text-field v-model="form.name" label="Nome" :rules="nameRules" required />
+        <v-textarea v-model="form.description" label="Descrição" auto-grow />
+        <v-file-input
+          v-model="form.imageFile"
+          label="Imagem do Produto"
+          accept="image/*"
+          prepend-icon="mdi-image"
         />
-
-        <v-textarea
-          v-model="form.descricao"
-          label="Descrição"
-          placeholder="Ex.: Pacote de 100g - sabor sortido"
-          prepend-icon="mdi-text"
-          variant="outlined"
-          density="compact"
-          auto-grow
+        <v-select
+          v-model="form.supplier_id"
+          :items="suppliers"
+          item-title="name"
+          item-value="id"
+          label="Fornecedor"
+          :rules="[v => !!v || 'Obrigatório']"
+        />
+        <v-select
+          v-model="form.product_category_id"
+          :items="categories"
+          item-title="name"
+          item-value="id"
+          label="Categoria"
+          :rules="[v => !!v || 'Obrigatório']"
         />
       </v-window-item>
 
-      <!-- Aba 2: Dados Comerciais -->
+      <!-- Comercial -->
       <v-window-item :value="1">
         <v-text-field
-          v-model="form.valor"
-          label="Valor (R$)"
-          :rules="valueRules"
-          placeholder="Ex.: 4.99"
-          prepend-icon="mdi-currency-brl"
+          v-model="form.costs"
+          label="Custo (R$)"
           type="number"
-          variant="outlined"
-          density="compact"
+          :rules="moneyRules"
           required
         />
-
         <v-text-field
-          v-model="form.fornecedor"
-          label="Fornecedor"
-          :rules="supplierRules"
-          placeholder="Ex.: Doces Brasil LTDA"
-          prepend-icon="mdi-domain"
-          variant="outlined"
-          density="compact"
+          v-model="form.wholesale_price"
+          label="Preço Atacado (R$)"
+          type="number"
+          :rules="moneyRules"
           required
         />
+        <v-text-field
+          v-model="form.retail_price"
+          label="Preço Varejo (R$)"
+          type="number"
+          :rules="moneyRules"
+          required
+        />
+      </v-window-item>
+
+      <!-- Apelidos -->
+      <v-window-item :value="2">
+        <v-text-field
+          v-model="newNickname"
+          label="Novo Apelido"
+          @keyup.enter="addNickname"
+          placeholder="Digite e pressione Enter"
+        />
+        <div class="mt-2">
+          <v-chip
+            v-for="(nick, i) in form.nicknames"
+            :key="i"
+            close
+            @click:close="removeNickname(i)"
+            class="ma-1"
+          >
+            {{ nick }}
+          </v-chip>
+        </div>
       </v-window-item>
     </v-window>
   </v-form>
@@ -70,29 +89,37 @@ import { ref, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   form: Object,
-  formRef: Object
+  formRef: Object,
+  suppliers: Array,
+  categories: Array
 })
-
 const emit = defineEmits(['submit'])
+
+const tab = ref(0)
+const newNickname = ref('')
 
 function submit() {
   emit('submit')
 }
 
-const tab = ref(0)
-
 const nameRules = [
-  v => !!v || 'Nome do produto é obrigatório',
-  v => v.length >= 3 || 'Mínimo 3 caracteres',
+  v => !!v || 'Nome é obrigatório',
+  v => v.length >= 3 || 'Mínimo 3 caracteres'
+]
+const moneyRules = [
+  v => !!v || 'Obrigatório',
+  v => parseFloat(v) > 0 || 'Deve ser maior que zero'
 ]
 
-const valueRules = [
-  v => !!v || 'Valor é obrigatório',
-  v => parseFloat(v) > 0 || 'Valor deve ser maior que 0',
-]
+function addNickname() {
+  const val = newNickname.value.trim()
+  if (val && !props.form.nicknames.includes(val)) {
+    props.form.nicknames.push(val)
+  }
+  newNickname.value = ''
+}
 
-const supplierRules = [
-  v => !!v || 'Fornecedor é obrigatório',
-  v => v.length >= 3 || 'Mínimo 3 caracteres',
-]
+function removeNickname(idx) {
+  props.form.nicknames.splice(idx, 1)
+}
 </script>
