@@ -6,25 +6,14 @@
 
     <v-card-text>
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field
-          v-model="form.productName"
-          label="Nome do Produto"
-          prepend-icon="mdi-package-variant"
-          :rules="[rules.required]"
-        />
-        <v-text-field
-          v-model="form.quantity"
-          type="number"
-          label="Quantidade"
-          prepend-icon="mdi-counter"
-          :rules="[rules.required, rules.number]"
-        />
-        <v-text-field
-          v-model="form.location"
-          label="Localização (Corredor/Prateleira/Gaveta)"
-          prepend-icon="mdi-map-marker"
-          :rules="[rules.required]"
-        />
+        <v-text-field v-model="form.productName" label="Nome do Produto" prepend-icon="mdi-package-variant" :rules="[rules.required]" />
+        <v-text-field v-model="form.quantity" type="number" label="Quantidade" prepend-icon="mdi-counter" :rules="[rules.required, rules.number]" />
+        <v-text-field v-model="form.location" label="Localização" prepend-icon="mdi-map-marker" :rules="[rules.required]" />
+        <v-text-field v-model="form.cep" label="CEP" prepend-icon="mdi-map-search" :rules="[rules.required]" @blur="fetchAddress" />
+        <v-text-field v-model="form.address" label="Endereço" prepend-icon="mdi-road" :rules="[rules.required]" />
+        <v-text-field v-model="form.number" label="Número" prepend-icon="mdi-numeric" :rules="[rules.required]" />
+        <v-text-field v-model="form.city" label="Cidade" prepend-icon="mdi-city" :rules="[rules.required]" />
+        <v-text-field v-model="form.state" label="Estado" prepend-icon="mdi-map" :rules="[rules.required]" />
       </v-form>
     </v-card-text>
 
@@ -38,6 +27,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import axios from 'axios'
+
 const props = defineProps({ stock: Object })
 const emit = defineEmits(['close', 'saved'])
 
@@ -46,6 +37,11 @@ const form = ref({
   productName: '',
   quantity: '',
   location: '',
+  cep: '',
+  address: '',
+  number: '',
+  city: '',
+  state: '',
 })
 
 const rules = {
@@ -54,20 +50,39 @@ const rules = {
 }
 
 watch(() => props.stock, (stock) => {
-  if (stock) {
-    form.value = { ...stock }
-  } else {
-    form.value = { productName: '', quantity: '', location: '' }
-  }
+  form.value = stock
+    ? { ...stock }
+    : { productName: '', quantity: '', location: '', cep: '', address: '', number: '', city: '', state: '' }
 }, { immediate: true })
+
+const fetchAddress = async () => {
+  if (!form.value.cep) return
+  try {
+    const { data } = await axios.get(`https://viacep.com.br/ws/${form.value.cep}/json`)
+    if (data.erro) return
+    form.value.address = data.logradouro
+    form.value.city = data.localidade
+    form.value.state = data.uf
+  } catch (e) {
+    console.error('Erro ao buscar CEP')
+  }
+}
 
 const save = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
-  // Salvar estoque (criar ou atualizar)
-  console.log('Salvando:', form.value)
-  emit('saved')
-  emit('close')
+  // Salvar estoque (POST ou PUT)
+  try {
+    if (form.value.id) {
+      await axios.put(`/api/stock/${form.value.id}`, form.value)
+    } else {
+      await axios.post('/api/stock', form.value)
+    }
+    emit('saved')
+    emit('close')
+  } catch (e) {
+    alert('Erro ao salvar estoque.')
+  }
 }
 </script>

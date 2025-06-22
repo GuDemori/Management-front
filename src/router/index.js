@@ -66,7 +66,14 @@ const routes = [
     name: 'NotFound',
     component: NotFound,
     meta: { layout: 'login' }
-  }
+  },
+  {
+  path: '/usuarios',
+  name: 'Users',
+  component: () => import('@/pages/users.vue'),
+  meta: { requiresAuth: true, onlyAdmin: true }
+}
+
 ]
 
 const router = createRouter({

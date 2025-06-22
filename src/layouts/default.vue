@@ -1,11 +1,7 @@
 <template>
   <v-app>
     <!-- MENU LATERAL -->
-    <v-navigation-drawer
-      v-model="drawer"
-      app
-      permanent
-    >
+    <v-navigation-drawer v-model="drawer" app permanent>
       <v-list-item to="/" title="Sabor Doce" subtitle="" />
 
       <v-divider />
@@ -50,15 +46,8 @@
     </v-navigation-drawer>
 
     <!-- BARRA SUPERIOR -->
-    <v-app-bar
-      app
-      flat
-      style="background-color: darkgoldenrod;"
-    >
-      <v-btn
-        icon
-        @click="drawer = !drawer"
-      >
+    <v-app-bar app flat style="background-color: darkgoldenrod;">
+      <v-btn icon @click="drawer = !drawer">
         <v-icon class="text-white">mdi-menu</v-icon>
       </v-btn>
 
@@ -72,11 +61,7 @@
       </v-btn>
 
       <!-- MENU DE OPÇÕES -->
-      <v-menu
-        v-model="menu"
-        offset-y
-        placement="bottom-end"
-      >
+      <v-menu v-model="menu" offset-y placement="bottom-end">
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
             <v-icon class="text-white">mdi-dots-vertical</v-icon>
@@ -84,6 +69,17 @@
         </template>
 
         <v-list>
+          <!-- Tipos de Estabelecimento (todos os logados veem) -->
+          <v-list-item v-if="isAdmin" @click="establishmentDialog = true">
+            <v-list-item-title class="text">Tipos de Estabelecimento</v-list-item-title>
+          </v-list-item>
+
+          <!-- Usuários (somente admin) -->
+          <v-list-item v-if="isAdmin" @click="router.push('/usuarios')">
+            <v-list-item-title>Usuários</v-list-item-title>
+          </v-list-item>
+
+          <!-- Sair -->
           <v-list-item @click="logout">
             <v-list-item-title class="text">Sair</v-list-item-title>
           </v-list-item>
@@ -97,6 +93,10 @@
         <router-view />
       </v-container>
     </v-main>
+
+    <!-- Diálogos -->
+    <establishment-type-dialog v-model="establishmentDialog" />
+    <user-dialog v-if="isAdmin" v-model="userDialog" />
   </v-app>
 </template>
 
@@ -104,14 +104,21 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import EstablishmentTypeDialog from '@/components/establishmentTypeDialog.vue'
+import UserDialog from '@/components/userDialog.vue'
 
-const drawer    = ref(true)
-const menu      = ref(false)
-const userRole  = ref(null)
-const route     = useRoute()
-const router    = useRouter()
+// Estados
+const drawer = ref(true)
+const menu = ref(false)
+const userRole = ref(null)
+const establishmentDialog = ref(false)
+const userDialog = ref(false)
 
-// rotas públicas que não precisam de fetch /api/users
+// Router
+const route = useRoute()
+const router = useRouter()
+
+// Rotas públicas (sem fetch)
 const publicNames = ['LoginPage', 'RegisterPage']
 
 onMounted(async () => {
@@ -128,12 +135,11 @@ onMounted(async () => {
   }
 })
 
-const isAdmin  = computed(() => userRole.value === 'admin')
-const isV1     = computed(() => userRole.value === 'v1')
+const isAdmin = computed(() => userRole.value === 'admin')
+const isV1 = computed(() => userRole.value === 'v1')
 const isClient = computed(() => userRole.value === 'client')
 
 function logout() {
-  // limpeza de credenciais/tokens
   localStorage.removeItem('authToken')
   router.push({ name: 'LoginPage' })
 }
