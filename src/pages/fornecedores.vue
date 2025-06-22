@@ -132,7 +132,7 @@ import axios from 'axios'
 import { useSuppliersStore } from '@/stores/suppliers'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
-import SupplierForm from '@/components/SupplierForm.vue'
+import SupplierForm from '@/components/supplierForm.vue'
 
 const store = useSuppliersStore()
 const formRef = ref(null)
