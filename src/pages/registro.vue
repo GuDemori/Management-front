@@ -5,8 +5,8 @@
         <v-img
           src="@/assets/logo.png"
           alt="Logo"
-          width="120"
-          height="120"
+          width="165"
+          height="165"
           class="mx-auto logo"
         />
       </div>
@@ -373,5 +373,16 @@ const register = async () => {
 }
 .input-field.mb-1 {
   margin-bottom: 18px !important;
+}
+.logo {
+  animation: fadeIn 1.2s ease-in-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 </style>

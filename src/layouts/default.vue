@@ -8,16 +8,6 @@
     >
       <v-list-item to="/" title="Sabor Doce" subtitle="" />
 
-      <div class="d-flex align-center justify-center" style="height: 100px;">
-        <v-btn
-          icon
-          @click="drawer = false"
-          class="border border-grey-darken-2 rounded-xl"
-        >
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-      </div>
-
       <v-divider />
 
       <v-list>
@@ -62,22 +52,43 @@
     <!-- BARRA SUPERIOR -->
     <v-app-bar
       app
-      color="teal-darken-4"
       flat
+      style="background-color: darkgoldenrod;"
     >
       <v-btn
         icon
-        v-if="!drawer"
-        @click="drawer = true"
+        @click="drawer = !drawer"
       >
         <v-icon class="text-white">mdi-menu</v-icon>
       </v-btn>
 
       <v-spacer />
 
-      <v-btn icon><v-icon class="text-white">mdi-magnify</v-icon></v-btn>
-      <v-btn icon><v-icon class="text-white">mdi-cart</v-icon></v-btn>
-      <v-btn icon><v-icon class="text-white">mdi-dots-vertical</v-icon></v-btn>
+      <v-btn icon>
+        <v-icon class="text-white">mdi-magnify</v-icon>
+      </v-btn>
+      <v-btn icon>
+        <v-icon class="text-white">mdi-cart</v-icon>
+      </v-btn>
+
+      <!-- MENU DE OPÇÕES -->
+      <v-menu
+        v-model="menu"
+        offset-y
+        placement="bottom-end"
+      >
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon class="text-white">mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item @click="logout">
+            <v-list-item-title class="text">Sair</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -91,18 +102,19 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const drawer    = ref(true)
+const menu      = ref(false)
 const userRole  = ref(null)
 const route     = useRoute()
+const router    = useRouter()
 
-// nomes de rota em que NÃO queremos buscar /api/users
+// rotas públicas que não precisam de fetch /api/users
 const publicNames = ['LoginPage', 'RegisterPage']
 
 onMounted(async () => {
-  // se estivermos em qualquer rota pública, pulamos a chamada inteira
   if (publicNames.includes(route.name)) {
     userRole.value = null
     return
@@ -119,8 +131,13 @@ onMounted(async () => {
 const isAdmin  = computed(() => userRole.value === 'admin')
 const isV1     = computed(() => userRole.value === 'v1')
 const isClient = computed(() => userRole.value === 'client')
-</script>
 
+function logout() {
+  // limpeza de credenciais/tokens
+  localStorage.removeItem('authToken')
+  router.push({ name: 'LoginPage' })
+}
+</script>
 
 <style scoped>
 .active-link {

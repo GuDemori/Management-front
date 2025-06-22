@@ -113,7 +113,7 @@ import axios from 'axios'
 import { useClientsStore } from '@/stores/clients'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
-import ClientForm from '@/components/ClientForm.vue'
+import ClientForm from '@/components/clientForm.vue'
 
 const store = useClientsStore()
 const formRef = ref(null)
