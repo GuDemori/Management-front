@@ -58,7 +58,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import UserDialog from '@/components/userDialog.vue'
+import userDialog from '@/components/userDialog.vue'
 
 const users = ref([])
 const dialog = ref(false)

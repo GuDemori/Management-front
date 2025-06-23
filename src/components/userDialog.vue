@@ -3,7 +3,7 @@
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span class="text-h6">Criar Novo Usuário</span>
-        <v-btn icon @click="model = false">
+        <v-btn icon @click="$emit('update:modelValue', false)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -78,7 +78,7 @@
                     label="Confirmar Senha"
                     type="password"
                     prepend-inner-icon="mdi-lock-check"
-                    :rules="[rules.required, v => v === form.password || 'Senhas diferentes']"
+                    :rules="[rules.required, rules.match]"
                   />
                 </v-col>
 
@@ -224,7 +224,8 @@ const rules = {
   document: v => {
     const cleaned = (v || '').replace(/\D/g, '')
     return cleaned.length === 11 || cleaned.length === 14 || 'CPF ou CNPJ inválido'
-  }
+  },
+  match: v => v === form.value.password || 'As senhas não coincidem'
 }
 
 const states = [
@@ -264,9 +265,14 @@ const save = async () => {
   if (!valid) return
 
   try {
-    const payload = { ...form.value }
+    const payload = {
+      ...form.value,
+      password_confirmation: form.value.confirmPassword
+    }
     delete payload.confirmPassword
+
     await axios.post('/api/users', payload)
+
     emit('update:modelValue', false)
     formRef.value.reset()
   } catch (err) {

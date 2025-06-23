@@ -72,7 +72,12 @@ const routes = [
   name: 'Users',
   component: () => import('@/pages/users.vue'),
   meta: { requiresAuth: true, onlyAdmin: true }
-}
+  },
+  {
+  path: '/estoque/:id',
+  name: 'StockDetails',
+  component: () => import('@/pages/stockDetails.vue')
+  }
 
 ]
 

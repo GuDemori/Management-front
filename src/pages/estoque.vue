@@ -30,6 +30,8 @@
       <template #item.actions="{ item }">
         <v-icon small class="me-2" @click="editStock(item)">mdi-pencil</v-icon>
         <v-icon small @click="deleteStock(item.id)">mdi-delete</v-icon>
+        <v-icon small @click="$router.push(`/estoque/${item.id}`)">mdi-eye</v-icon>
+
       </template>
     </v-data-table>
 
@@ -55,13 +57,17 @@ const headers = [
   { text: 'Produto', value: 'productName' },
   { text: 'Quantidade', value: 'quantity' },
   { text: 'Localização', value: 'location' },
+  { text: 'CEP', value: 'cep' },
   { text: 'Endereço', value: 'address' },
+  { text: 'Número', value: 'number' },
   { text: 'Cidade', value: 'city' },
   { text: 'Estado', value: 'state' },
   { text: 'Ações', value: 'actions', sortable: false },
 ]
 
-const filteredStocks = computed(() => stocks.value.filter(s => s.isActive))
+const filteredStocks = computed(() =>
+  stocks.value.filter(s => s.isActive)
+)
 
 async function fetchStocks() {
   loading.value = true

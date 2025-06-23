@@ -21,7 +21,7 @@
           </v-tabs>
 
           <v-window v-model="step">
-            <!-- Etapa 1: Conta -->
+            <!-- Etapa 1 -->
             <v-window-item :value="0">
               <v-select
                 v-model="establishment_type_id"
@@ -40,8 +40,8 @@
               <v-text-field
                 v-model="name"
                 label="Nome do Estabelecimento"
-                :rules="[rules.required]"
                 prepend-inner-icon="mdi-account"
+                :rules="[rules.required]"
                 variant="outlined"
                 density="compact"
                 hide-details="auto"
@@ -111,7 +111,7 @@
               </v-btn>
             </v-window-item>
 
-            <!-- Etapa 2: Endereço -->
+            <!-- Etapa 2 -->
             <v-window-item :value="1">
               <v-text-field
                 v-model="cep"
@@ -257,7 +257,7 @@ const showConfirmPassword = ref(false)
 const loadingCep = ref(false)
 const errorCep = ref('')
 
-// Dados do formulário
+// Formulário
 const establishment_type_id = ref(null)
 const name = ref('')
 const email = ref('')
@@ -332,9 +332,16 @@ const fetchAddress = async () => {
 const register = async () => {
   loading.value = true
   errorMessage.value = ''
+
+  if (!establishment_type_id.value || isNaN(parseInt(establishment_type_id.value))) {
+    errorMessage.value = 'Selecione um tipo de estabelecimento válido.'
+    loading.value = false
+    return
+  }
+
   try {
     await axios.post('/api/register', {
-      establishment_type_id: establishment_type_id.value,
+      establishment_type_id: parseInt(establishment_type_id.value),
       name: name.value,
       email: email.value,
       password: password.value,
@@ -348,9 +355,16 @@ const register = async () => {
       city: city.value,
       state: state.value
     })
+
     window.location.href = '/login'
   } catch (err) {
-    errorMessage.value = err.response?.data?.message || 'Não foi possível registrar.'
+    if (err.response?.data?.errors) {
+      const errors = err.response.data.errors
+      const firstError = Object.values(errors)[0][0]
+      errorMessage.value = firstError
+    } else {
+      errorMessage.value = err.response?.data?.message || 'Não foi possível registrar.'
+    }
   } finally {
     loading.value = false
   }
