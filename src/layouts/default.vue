@@ -8,35 +8,35 @@
 
       <v-list>
         <v-list-item
-          v-if="isAdmin || isV1 || isClient"
+          v-if="isAdmin || isV1 || isClient || isCoworker"
           to="/produtos"
           title="Produtos"
           prepend-icon="mdi-package-variant"
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isCoworker"
           to="/clientes"
           title="Clientes"
           prepend-icon="mdi-account-multiple"
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isCoworker"
           to="/pedidos"
           title="Pedidos"
           prepend-icon="mdi-truck-fast"
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isCoworker"
           to="/fornecedores"
           title="Fornecedores"
           prepend-icon="mdi-account-group"
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isCoworker"
           to="/estoque"
           title="Estoque"
           prepend-icon="mdi-package-variant-closed"
@@ -135,9 +135,10 @@ onMounted(async () => {
   }
 })
 
-const isAdmin = computed(() => userRole.value === 'admin')
-const isV1 = computed(() => userRole.value === 'v1')
-const isClient = computed(() => userRole.value === 'client')
+const isAdmin    = computed(() => userRole.value === 'admin')
+const isV1       = computed(() => userRole.value === 'v1')
+const isClient   = computed(() => userRole.value === 'client')
+const isCoworker = computed(() => userRole.value === 'coworker')
 
 function logout() {
   localStorage.removeItem('authToken')
