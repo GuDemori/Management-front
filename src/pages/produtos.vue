@@ -72,7 +72,6 @@
           <v-card-text>
             <ProductForm
               :form="form"
-              :formRef="formRef"
               :suppliers="suppliers"
               :categories="categories"
               @submit="save"
@@ -227,7 +226,8 @@ onMounted(async () => {
   const sup = await axios.get('/api/suppliers')
   suppliers.value = sup.data.data || sup.data
 
-  const cat = await axios.get('/api/product_categories')
+  const cat = await axios.get('/api/product-categories')
+  console.log('Categorias carregadas:', cat.data)
   categories.value = cat.data.data || cat.data
 })
 
@@ -271,7 +271,7 @@ function edit(item) {
     retail_price: item.retail_price,
     supplier_id: item.supplier_id,
     product_category_id: item.product_category_id,
-    nicknames: item.nicknames.map(n => n.nickname)
+    nicknames: Array.isArray(item.nicknames) ? item.nicknames.map(n => n.nickname) : []
   })
   formRef.value?.resetValidation()
   dialog.value = true
@@ -282,25 +282,32 @@ function closeDialog() {
 }
 
 async function save() {
-  if (!formRef.value.validate()) return
   error.value = ''
   try {
+    const fd = new FormData()
+    fd.append('name', form.name)
+    fd.append('description', form.description || '')
+    fd.append('costs', form.costs)
+    fd.append('wholesale_price', form.wholesale_price)
+    fd.append('retail_price', form.retail_price)
+    fd.append('supplier_id', form.supplier_id || '')
+    fd.append('product_category_id', form.product_category_id)
     if (form.imageFile) {
-      const fd = new FormData()
-      fd.append('file', form.imageFile)
-      const { data: up } = await axios.post('/api/uploads', fd)
-      form.image_url = up.url
+      fd.append('image', form.imageFile)
     }
 
     let resp
     if (form.id) {
-      resp = await axios.put(`/api/products/${form.id}`, form)
+      resp = await axios.post(`/api/products/${form.id}?_method=PUT`, fd)
     } else {
-      resp = await axios.post('/api/products', form)
+      resp = await axios.post('/api/products', fd)
       form.id = resp.data.id
     }
 
-    await axios.put(`/api/products/${form.id}/nicknames`, { nicknames: form.nicknames })
+    await axios.put(`/api/products/${form.id}/nicknames`, {
+      nicknames: form.nicknames
+    })
+
     await store.fetchAll()
     closeDialog()
     successDialog.value = true
@@ -309,6 +316,7 @@ async function save() {
     error.value = e.response?.data?.message || 'Erro ao salvar produto.'
   }
 }
+
 
 async function remove(item) {
   if (!confirm(`Deseja excluir ${item.name}?`)) return

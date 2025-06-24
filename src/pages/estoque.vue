@@ -4,8 +4,9 @@
       <v-col cols="auto">
         <h1>Estoque</h1>
       </v-col>
-      <v-col cols="auto">
+      <v-col cols="auto" class="d-flex gap-2">
         <v-btn color="primary" @click="openDialog">Adicionar Estoque</v-btn>
+        <v-btn color="secondary" @click="openProductStockDialog">Adicionar Produto ao Estoque</v-btn>
       </v-col>
     </v-row>
 
@@ -33,8 +34,14 @@
       </template>
     </v-data-table>
 
+    <!-- Dialog para formulário de estoque -->
     <v-dialog v-model="dialog" max-width="800px">
       <stock-form :stock="selectedStock" @close="closeDialog" @saved="fetchStocks" />
+    </v-dialog>
+
+    <!-- Dialog para adicionar produto ao estoque -->
+    <v-dialog v-model="productStockDialog" max-width="800px">
+      <product-stock-form @close="closeProductStockDialog" @saved="fetchStocks" />
     </v-dialog>
   </v-container>
 </template>
@@ -43,10 +50,12 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import stockForm from '@/components/stockform.vue'
+import productStockForm from '@/components/productStockForm.vue'
 
 const loading = ref(false)
 const error = ref('')
 const dialog = ref(false)
+const productStockDialog = ref(false)
 const search = ref('')
 const selectedStock = ref(null)
 const stocks = ref([])
@@ -85,6 +94,14 @@ const closeDialog = () => {
   dialog.value = false
 }
 
+const openProductStockDialog = () => {
+  productStockDialog.value = true
+}
+
+const closeProductStockDialog = () => {
+  productStockDialog.value = false
+}
+
 const editStock = (stock) => {
   selectedStock.value = { ...stock }
   dialog.value = true
@@ -102,3 +119,9 @@ function deleteStock(id) {
 
 onMounted(fetchStocks)
 </script>
+
+<style scoped>
+.gap-2 {
+  gap: 8px;
+}
+</style>

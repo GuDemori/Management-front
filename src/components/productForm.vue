@@ -89,7 +89,6 @@ import { ref, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   form: Object,
-  formRef: Object,
   suppliers: Array,
   categories: Array
 })
@@ -97,19 +96,22 @@ const emit = defineEmits(['submit'])
 
 const tab = ref(0)
 const newNickname = ref('')
-
-function submit() {
-  emit('submit')
-}
+const formRef = ref(null)
 
 const nameRules = [
   v => !!v || 'Nome é obrigatório',
   v => v.length >= 3 || 'Mínimo 3 caracteres'
 ]
+
 const moneyRules = [
   v => !!v || 'Obrigatório',
   v => parseFloat(v) > 0 || 'Deve ser maior que zero'
 ]
+
+async function submit() {
+  const { valid } = await formRef.value.validate()
+  if (valid) emit('submit')
+}
 
 function addNickname() {
   const val = newNickname.value.trim()

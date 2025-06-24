@@ -9,11 +9,14 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ClientForm: typeof import('./src/components/clientForm.vue')['default']
+    EstablishmentTypeDialog: typeof import('./src/components/establishmentTypeDialog.vue')['default']
     OrderForm: typeof import('./src/components/orderForm.vue')['default']
     ProductForm: typeof import('./src/components/productForm.vue')['default']
+    ProductStockForm: typeof import('./src/components/productStockForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Stockform: typeof import('./src/components/stockform.vue')['default']
     SupplierForm: typeof import('./src/components/supplierForm.vue')['default']
+    UserDialog: typeof import('./src/components/userDialog.vue')['default']
   }
 }
