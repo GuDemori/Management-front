@@ -11,12 +11,33 @@
       <v-window-item :value="0">
         <v-text-field v-model="form.name" label="Nome" :rules="nameRules" required />
         <v-textarea v-model="form.description" label="Descrição" auto-grow />
+        <!-- Preview da imagem atual se houver -->
+        <v-img
+          v-if="form.image_url && !form.imageFile"
+          :src="form.image_url"
+          max-height="150"
+          class="mb-3"
+          cover
+        />
+        <!-- Campo para upload -->
         <v-file-input
           v-model="form.imageFile"
           label="Imagem do Produto"
           accept="image/*"
           prepend-icon="mdi-image"
-        />
+          show-size
+        >
+          <template #prepend>
+            <v-img
+              v-if="previewUrl"
+              :src="previewUrl"
+              max-height="60"
+              max-width="60"
+              class="mr-2 rounded"
+              cover
+            />
+          </template>
+        </v-file-input>
         <v-select
           v-model="form.supplier_id"
           :items="suppliers"
@@ -107,6 +128,13 @@ const moneyRules = [
   v => !!v || 'Obrigatório',
   v => parseFloat(v) > 0 || 'Deve ser maior que zero'
 ]
+
+const previewUrl = computed(() => {
+  if (props.form.imageFile) {
+    return URL.createObjectURL(props.form.imageFile)
+  }
+  return props.form.image_url || ''
+})
 
 async function submit() {
   const { valid } = await formRef.value.validate()
