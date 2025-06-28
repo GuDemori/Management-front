@@ -42,18 +42,18 @@
         class="elevation-1"
         item-value="id"
       >
-        <template #item.image_url="{ item }">
-          <v-avatar size="32">
-            <img :src="item.image_url" alt="Imagem do produto" />
-          </v-avatar>
-        </template>
+      <template #item.image_url="{ item }">
+        <v-avatar size="48" class="ma-2">
+          <v-img :src="item.image_url" alt="Imagem do produto" cover />
+        </v-avatar>
+      </template>
 
         <template #item.actions="{ item }">
           <!-- Botões sempre visíveis -->
           <v-btn icon @click="edit(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn icon @click="remove(item)">
+          <v-btn icon @click="askDelete(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </template>
@@ -147,6 +147,25 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <!-- Diálogo de Confirmação de Exclusão -->
+      <v-dialog v-model="confirmDeleteDialog" max-width="400px">
+        <v-card>
+          <v-card-title class="text-h6">Confirmar Exclusão</v-card-title>
+          <v-card-text>
+            Tem certeza que deseja excluir
+            <strong>{{ productToDelete?.name }}</strong>?
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="secondary" @click="confirmDeleteDialog = false">
+              Cancelar
+            </v-btn>
+            <v-btn color="error" @click="remove" prepend-icon="mdi-delete">
+              Excluir
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </v-app>
 </template>
@@ -163,8 +182,8 @@ import { useAuthStore } from '@/stores/auth'
 const store = useProductsStore()
 const auth = useAuthStore()
 
-// Computed para isAdmin (você pode reativar mais tarde)
-const isAdmin = computed(() => auth.user?.role === 'admin')
+const confirmDeleteDialog = ref(false)
+const productToDelete = ref(null)
 
 const formRef = ref(null)
 const dialog = ref(false)
@@ -217,17 +236,14 @@ const suppliers = ref([])
 const categories = ref([])
 
 onMounted(async () => {
-  // Se você tiver fetchUser no auth store
   if (auth.fetchUser) await auth.fetchUser()
 
   await store.fetchAll()
 
-  // Carrega listas
   const sup = await axios.get('/api/suppliers')
   suppliers.value = sup.data.data || sup.data
 
   const cat = await axios.get('/api/product-categories')
-  console.log('Categorias carregadas:', cat.data)
   categories.value = cat.data.data || cat.data
 })
 
@@ -271,8 +287,11 @@ function edit(item) {
     retail_price: item.retail_price,
     supplier_id: item.supplier_id,
     product_category_id: item.product_category_id,
-    nicknames: Array.isArray(item.nicknames) ? item.nicknames.map(n => n.nickname) : []
+    nicknames: Array.isArray(item.nicknames)
+      ? item.nicknames.map(n => n.nickname)
+      : []
   })
+  console.log('Editando produto:', item.image_url);
   formRef.value?.resetValidation()
   dialog.value = true
 }
@@ -281,26 +300,33 @@ function closeDialog() {
   dialog.value = false
 }
 
+function askDelete(item) {
+  productToDelete.value = item
+  confirmDeleteDialog.value = true
+}
+
 async function save() {
   error.value = ''
   try {
-    const fd = new FormData()
-    fd.append('name', form.name)
-    fd.append('description', form.description || '')
-    fd.append('costs', form.costs)
-    fd.append('wholesale_price', form.wholesale_price)
-    fd.append('retail_price', form.retail_price)
-    fd.append('supplier_id', form.supplier_id || '')
-    fd.append('product_category_id', form.product_category_id)
+    const formData = new FormData()
+    formData.append('name', form.name)
+    formData.append('description', form.description || '')
+    formData.append('costs', form.costs)
+    formData.append('wholesale_price', form.wholesale_price)
+    formData.append('retail_price', form.retail_price)
+    formData.append('supplier_id', form.supplier_id || '')
+    formData.append('product_category_id', form.product_category_id)
     if (form.imageFile) {
-      fd.append('image', form.imageFile)
+    formData.append('image', form.imageFile)
+    } else if (form.image_url) {
+      formData.append('image_url', form.image_url)
     }
 
     let resp
     if (form.id) {
-      resp = await axios.post(`/api/products/${form.id}?_method=PUT`, fd)
+      resp = await axios.post(`/api/products/${form.id}?_method=PUT`, formData)
     } else {
-      resp = await axios.post('/api/products', fd)
+      resp = await axios.post('/api/products', formData)
       form.id = resp.data.id
     }
 
@@ -318,11 +344,14 @@ async function save() {
 }
 
 
-async function remove(item) {
-  if (!confirm(`Deseja excluir ${item.name}?`)) return
+async function remove() {
+  if (!productToDelete.value) return
+
   try {
-    await axios.delete(`/api/products/${item.id}`)
+    await axios.put(`/api/products/${productToDelete.value.id}/deactivate`)
     await store.fetchAll()
+    confirmDeleteDialog.value = false
+    productToDelete.value = null
   } catch (e) {
     console.error(e)
     error.value = 'Erro ao excluir produto.'
