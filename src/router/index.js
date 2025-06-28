@@ -10,7 +10,7 @@ import ProductsPage  from '@/pages/produtos.vue'
 import OrdersPage    from '@/pages/pedidos.vue'
 import StockPage     from '@/pages/estoque.vue'
 import NotFound      from '@/pages/notFound.vue'
-
+import { useAuthStore } from '../stores/auth'
 const routes = [
   {
     path: '/login',
@@ -60,7 +60,6 @@ const routes = [
     component: StockPage,
     meta: { requiresAuth: true }
   },
-  // catch-all 404
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -72,7 +71,13 @@ const routes = [
   name: 'Users',
   component: () => import('@/pages/users.vue'),
   meta: { requiresAuth: true, onlyAdmin: true }
-}
+  },
+  {
+    path: '/carrinho',
+    name: 'CartPage',
+    component: () => import('@/pages/cart.vue'),
+    meta: { requiresAuth: true }
+  }
 
 ]
 
@@ -81,13 +86,19 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const token     = localStorage.getItem('authToken')
     const needsAuth = to.matched.some(r => r.meta.requiresAuth)
 
     if (needsAuth && !token) {
       return next({ name: 'LoginPage', query: { redirect: to.fullPath } })
     }
+
+    if (token) {
+      const authStore = useAuthStore()
+      await authStore.fetchUser()
+    }
+
     if ((to.name === 'LoginPage' || to.name === 'RegisterPage') && token) {
       return next({ name: 'IndexPage' })
     }

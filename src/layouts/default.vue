@@ -56,7 +56,7 @@
       <v-btn icon>
         <v-icon class="text-white">mdi-magnify</v-icon>
       </v-btn>
-      <v-btn icon>
+      <v-btn icon to="/carrinho" class="ml-2">
         <v-icon class="text-white">mdi-cart</v-icon>
       </v-btn>
 
@@ -106,6 +106,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import EstablishmentTypeDialog from '@/components/establishmentTypeDialog.vue'
 import UserDialog from '@/components/userDialog.vue'
+import { useCartStore } from '@/stores/cart'
 
 // Estados
 const drawer = ref(true)
@@ -120,6 +121,8 @@ const router = useRouter()
 
 // Rotas públicas (sem fetch)
 const publicNames = ['LoginPage', 'RegisterPage']
+
+const cartStore = useCartStore()
 
 onMounted(async () => {
   if (publicNames.includes(route.name)) {
@@ -143,6 +146,7 @@ function logout() {
   localStorage.removeItem('authToken')
   router.push({ name: 'LoginPage' })
 }
+
 </script>
 
 <style scoped>

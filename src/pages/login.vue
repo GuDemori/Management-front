@@ -108,6 +108,7 @@ const login = async () => {
     if (!token) throw new Error('Token não retornado pelo backend')
 
     localStorage.setItem('authToken', token)
+    localStorage.setItem('refreshToken', response.data.refresh_token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
     window.location.href = '/'

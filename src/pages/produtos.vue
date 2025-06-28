@@ -8,11 +8,24 @@
           <v-toolbar flat>
             <v-toolbar-title>Produtos</v-toolbar-title>
             <v-spacer />
+            <v-select
+              v-model="selectedStockId"
+              :items="stock"
+              item-value="id"
+              item-title="name"
+              label="Estoque"
+              class="mr-4"
+              dense
+              outlined
+              hide-details
+              style="max-width: 250px"
+              @update:modelValue="onStockChange"
+            />
             <!-- Botão sempre visível -->
             <v-btn color="primary" @click="openDialog">
               Adicionar Produto
             </v-btn>
-            <v-btn color="secondary" class="ml-2" @click="exportPDF">
+            <v-btn color="secondary" class="ml-2" @click="exportDialog = true">
               <v-icon left>mdi-file-pdf</v-icon>
               Exportar PDF
             </v-btn>
@@ -32,6 +45,17 @@
         @click:close="error = ''"
       >
         {{ error }}
+      </v-alert>
+
+      <!-- Alerta de Sucesso -->
+      <v-alert
+        v-if="successMessage"
+        type="success"
+        dismissible
+        class="mb-4"
+        @click:close="successMessage = ''"
+      >
+        {{ successMessage }}
       </v-alert>
 
       <!-- Tabela de Produtos -->
@@ -56,9 +80,36 @@
           <v-btn icon @click="askDelete(item)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
+          <v-btn icon @click="openQuantityDialog(item)">
+            <v-icon>mdi-cart-plus</v-icon>
+          </v-btn>
         </template>
       </v-data-table>
 
+      <v-dialog v-model="quantityDialog" max-width="400px">
+        <v-card>
+          <v-card-title class="text-h6">
+            Adicionar ao Carrinho
+          </v-card-title>
+          <v-card-text>
+            <div>Produto: <strong>{{ selectedProduct?.name }}</strong></div>
+            <div>Estoque disponível: <strong>{{ selectedProduct?.stock_quantity }}</strong></div>
+          <v-text-field
+              v-model.number="selectedQuantity"
+              label="Quantidade"
+              type="number"
+              min="1"
+              :max="selectedProduct?.stock_quantity"
+              :rules="[v => v > 0 || 'Quantidade inválida']"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn text @click="quantityDialog = false">Cancelar</v-btn>
+            <v-btn color="primary" @click="confirmAddToCart">Adicionar</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
       <!-- Diálogo de Formulário -->
       <v-dialog
         v-model="dialog"
@@ -166,6 +217,26 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-dialog v-model="exportDialog" max-width="400px">
+        <v-card>
+          <v-card-title class="text-h6">Exportar PDF</v-card-title>
+          <v-card-text>
+            <v-select
+              v-model="selectedPrice"
+              :items="['Atacado', 'Varejo']"
+              label="Tipo de Preço"
+              dense
+              outlined
+              required
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn text @click="exportDialog = false">Cancelar</v-btn>
+            <v-btn color="primary" @click="handlePDFExport">Exportar</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </v-app>
 </template>
@@ -174,13 +245,13 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
-import productForm from '@/components/productForm.vue'
+import autoTable from 'jspdf-autotable';
 import { useProductsStore } from '@/stores/products'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 
 const store = useProductsStore()
-const auth = useAuthStore()
+const authStore = useAuthStore();
 
 const confirmDeleteDialog = ref(false)
 const productToDelete = ref(null)
@@ -189,8 +260,21 @@ const formRef = ref(null)
 const dialog = ref(false)
 const filterDialog = ref(false)
 const successDialog = ref(false)
-const error = ref('')
 
+const error = ref('')
+const successMessage = ref('')
+
+const exportDialog = ref(false)
+const selectedPrice = ref('Atacado')
+
+const cartStore = useCartStore()
+
+const quantityDialog = ref(false)
+const selectedProduct = ref(null)
+const selectedQuantity = ref(1)
+
+const stock = ref([])
+const selectedStockId = ref(null)
 const form = reactive({
   id: null,
   name: '',
@@ -236,7 +320,15 @@ const suppliers = ref([])
 const categories = ref([])
 
 onMounted(async () => {
-  if (auth.fetchUser) await auth.fetchUser()
+  if (authStore.isLogged) {
+    authStore.fetchUser()
+      .then(() => {
+        console.log('Usuário autenticado:', authStore.user)
+      })
+      .catch(error => {
+        console.error('Erro ao buscar usuário:', error)
+      })
+  }
 
   await store.fetchAll()
 
@@ -245,6 +337,21 @@ onMounted(async () => {
 
   const cat = await axios.get('/api/product-categories')
   categories.value = cat.data.data || cat.data
+
+  const { data } = await axios.get('/api/stock')
+  const allStocks = data.data || data
+
+  stock.value = allStocks
+    .filter(s => s.isActive)
+    .map(s => ({ ...s, name: `${s.city} - #${s.id}` }))
+
+  const rondon = stock.value.find(s => s.city?.toLowerCase().includes('rondon'))
+  selectedStockId.value = rondon?.id || stock.value[0]?.id || null
+
+  if (selectedStockId.value) {
+    await store.fetchAll(selectedStockId.value)
+  }
+
 })
 
 const filteredProducts = computed(() =>
@@ -291,7 +398,6 @@ function edit(item) {
       ? item.nicknames.map(n => n.nickname)
       : []
   })
-  console.log('Editando produto:', item.image_url);
   formRef.value?.resetValidation()
   dialog.value = true
 }
@@ -305,6 +411,42 @@ function askDelete(item) {
   confirmDeleteDialog.value = true
 }
 
+async function convertToWebP(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width
+        canvas.height = img.height
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+
+        canvas.toBlob((blob) => {
+          const webpFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
+            type: 'image/webp',
+            lastModified: Date.now()
+          })
+          resolve(webpFile)
+        }, 'image/webp', 0.8)
+      }
+
+      img.onerror = () => {
+        console.warn('Erro ao converter imagem:', file.name)
+        resolve(file)
+      }
+
+      img.src = e.target.result
+    }
+
+    reader.readAsDataURL(file)
+  })
+}
+
+
 async function save() {
   error.value = ''
   try {
@@ -317,7 +459,9 @@ async function save() {
     formData.append('supplier_id', form.supplier_id || '')
     formData.append('product_category_id', form.product_category_id)
     if (form.imageFile) {
-    formData.append('image', form.imageFile)
+      form.imageFile = await convertToWebP(form.imageFile)
+      formData.append('image', form.imageFile)
+      form.image_url = null
     } else if (form.image_url) {
       formData.append('image_url', form.image_url)
     }
@@ -363,20 +507,117 @@ function resetFilters() {
   Object.assign(filterOptions, { name: false, supplier: false, category: false, nickname: false })
 }
 
-function exportPDF() {
+async function handlePDFExport() {
   const doc = new jsPDF()
   doc.setFontSize(18)
   doc.text('Lista de Produtos', 14, 22)
 
-  const cols = headers.filter(h => !['actions','image_url'].includes(h.value)).map(h => h.text)
-  const rows = filteredProducts.value.map(p => [
-    p.id, p.name, p.description,
-    p.supplier?.name || '',
-    p.category?.name || '',
-    p.costs, p.wholesale_price, p.retail_price
-  ])
+  const max = 30
+  const priceKey = selectedPrice.value === 'Atacado' ? 'wholesale_price' : 'retail_price'
+  const priceLabel = selectedPrice.value === 'Atacado' ? 'Preço Atacado' : 'Preço Varejo'
 
-  doc.autoTable({ head:[cols], body:rows, startY:30, styles:{fontSize:10}, headStyles:{fillColor:[41,128,185]} })
-  doc.save('produtos.pdf')
+  const rows = await Promise.all(
+    filteredProducts.value.slice(0, max).map(async p => {
+      const img = await toBase64(p.image_url)
+      return {
+        image: img,
+        data: [
+          p.id,
+          p.name,
+          p.description,
+          p.supplier?.name || '',
+          p.category?.name || '',
+          p[priceKey]
+        ]
+      }
+    })
+  )
+
+  autoTable(doc, {
+    head: [['Imagem', 'ID', 'Nome', 'Descrição', 'Fornecedor', 'Categoria', priceLabel]],
+    body: rows.map(r => [
+      { content: '', styles: { cellWidth: 20, minCellHeight: 20 }, img: r.image },
+      ...r.data
+    ]),
+    didDrawCell: function (data) {
+      if (data.column.index === 0 && data.cell.section === 'body') {
+        doc.addImage(data.row.raw[0].img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 16, 16)
+      }
+    },
+    startY: 30,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [41, 128, 185] }
+  })
+
+  doc.save(`produtos_preco_${selectedPrice.value.toLowerCase()}.pdf`)
 }
+
+function toBase64(url) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.setAttribute('crossOrigin', 'anonymous')
+    img.onload = function () {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0)
+      resolve(canvas.toDataURL('image/jpeg'))
+    }
+    img.onerror = () => {
+      console.warn('Erro ao carregar imagem:', url)
+      resolve('')
+    }
+    img.src = url
+  })
+}
+
+function addToCart(item) {
+  cartStore.add(item)
+}
+
+function openQuantityDialog(product) {
+  selectedProduct.value = product
+  selectedQuantity.value = 1
+  quantityDialog.value = true
+}
+
+function confirmAddToCart() {
+  const product = selectedProduct.value
+  const quantity = selectedQuantity.value
+
+  const existingProductInCart = cartStore.items.find(item => item.id === product.id)
+  const totalQuantityInCart = existingProductInCart ? existingProductInCart.quantity : 0
+
+  const totalQuantity = totalQuantityInCart + quantity
+
+  if (totalQuantity > product.stock_quantity) {
+    error.value = `Estoque insuficiente. Disponível: ${product.stock_quantity}`
+
+    setTimeout(() => {
+      error.value = ''
+    }, 3000)
+
+    return
+  }
+
+  cartStore.add({ ...product, quantity })
+  quantityDialog.value = false
+
+  successMessage.value = `Produto "${product.name}" adicionado ao carrinho!`
+
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
+
+async function onStockChange(id) {
+  selectedStockId.value = id
+  try {
+    await store.fetchAll(id)
+  } catch (err) {
+    console.error('❌ Erro ao trocar estoque:', err)
+  }
+}
+
 </script>
