@@ -1,20 +1,24 @@
 /**
  * main.js
- *aaa
  * Bootstraps Vuetify and other plugins then mounts the App`
  */
 
 // Plugins
 import { registerPlugins } from '@/plugins'
 
+// Store (Pinia)
+import { createPinia } from 'pinia';
+
+// Composables
+import { createApp } from 'vue';
+
 // Components
 import App from './App.vue'
 
-// Composables
-import { createApp } from 'vue'
 
 // Axios
 import axios from 'axios'
+
 
 // Styles
 import 'unfonts.css'
@@ -36,7 +40,13 @@ axios.interceptors.request.use(
 
 const app = createApp(App)
 
+// Create Pinia store
+const pinia = createPinia()
+
+// Register plugins (Vuetify, Axios, etc.)
 registerPlugins(app)
 
-app.mount('#app')
+// Use Pinia
+app.use(pinia)
 
+app.mount('#app')

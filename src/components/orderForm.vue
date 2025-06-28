@@ -75,7 +75,6 @@ const save = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
-  console.log('Pedido salvo:', form.value)
   emit('saved')
   emit('update:dialog', false)
 }
