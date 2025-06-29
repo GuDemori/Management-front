@@ -4,14 +4,16 @@
             <v-card v-if="cartItems.length" class="mb-4">
                 <v-card-title class="text-h6">Carrinho de Compras</v-card-title>
                 <v-divider />
+                <v-select v-if="authStore.user && isAdminOrCoworker && clients.length" v-model="selectedClientId"
+                    :items="clients" item-title="name" item-value="id" label="Selecionar cliente"
+                    style="max-width: 300px" dense class="ml-4" />
 
                 <v-list>
                     <v-list-item v-for="item in cartItems" :key="item.id" class="align-start">
-                        <v-list-item-avatar>
+                        <v-avatar class="mr-4" size="56">
                             <v-img :src="item.image_url" width="56" height="56" cover />
-                        </v-list-item-avatar>
-
-                        <v-list-item-content>
+                        </v-avatar>
+                        <div class="flex-grow-1">
                             <v-list-item-title>{{ item.name }}</v-list-item-title>
                             <v-list-item-subtitle>
                                 <span v-if="!item.expanded">
@@ -34,7 +36,7 @@
                                 <span class="ml-4">R$ {{ format(item.wholesale_price) }} x {{ item.quantity }} =
                                     <strong>R$ {{ format(item.quantity * item.wholesale_price) }}</strong></span>
                             </div>
-                        </v-list-item-content>
+                        </div>
 
                         <v-list-item-action>
                             <v-btn icon color="error" @click="removeItem(item)">
@@ -92,6 +94,10 @@ const total = computed(() => cartStore.items.reduce((acc, i) => acc + i.quantity
 
 const format = (n) => parseFloat(n).toFixed(2).replace('.', ',')
 
+const isAdminOrCoworker = computed(() =>
+    ['admin', 'coworker'].includes(authStore.user?.role)
+)
+
 function increment(item) {
     const max = item.stock_quantity || 0
     if (item.quantity < max) {
@@ -113,6 +119,11 @@ function clearCart() {
     confirmClearDialog.value = false
     router.push('/produtos')
 }
+
+watchEffect(() => {
+    console.log('user:', authStore.user)
+    console.log('isAdminOrCoworker:', isAdminOrCoworker.value)
+})
 
 async function submitOrder() {
     try {
@@ -168,10 +179,18 @@ async function submitOrder() {
 
 onMounted(async () => {
     if (!authStore.user) await authStore.fetchUser()
+
     if (['admin', 'coworker'].includes(authStore.user.role)) {
-        const resp = await axios.get('/api/users')
-        clients.value = resp.data.filter(u => u.role === 'client')
-        selectedClientId.value = clients.value[0]?.id || null
+        try {
+            const resp = await axios.get('/api/users/clients')
+
+            const users = Array.isArray(resp.data) ? resp.data : []
+            clients.value = users
+            selectedClientId.value = clients.value[0]?.id || null
+        } catch (err) {
+            console.error('Erro ao buscar usuários', err)
+        }
     }
 })
+
 </script>

@@ -232,37 +232,28 @@
         <v-card>
           <v-card-title>Filtros</v-card-title>
           <v-card-text>
-            <v-checkbox v-model="filterOptions.name" label="Nome" />
             <v-checkbox v-model="filterOptions.supplier" label="Fornecedor" />
             <v-checkbox v-model="filterOptions.category" label="Categoria" />
-            <v-checkbox v-model="filterOptions.nickname" label="Apelido" />
-
             <v-divider class="my-2" />
 
-            <v-text-field
-              v-if="filterOptions.name"
-              v-model="filters.name"
-              label="Nome"
-              clearable
-            />
-            <v-text-field
+            <v-select
               v-if="filterOptions.supplier"
               v-model="filters.supplier"
+              :items="supplierOptions"
+              item-title="name"
+              item-value="name"
               label="Fornecedor"
-              clearable
             />
-            <v-text-field
+
+            <v-select
               v-if="filterOptions.category"
               v-model="filters.category"
+              :items="categoryOptions"
+              item-title="name"
+              item-value="name"
               label="Categoria"
-              clearable
             />
-            <v-text-field
-              v-if="filterOptions.nickname"
-              v-model="filters.nickname"
-              label="Apelido"
-              clearable
-            />
+
           </v-card-text>
           <v-card-actions>
             <v-spacer />
@@ -381,16 +372,23 @@ const form = reactive({
 })
 
 const filters = reactive({
-  name: '',
   supplier: '',
   category: '',
-  nickname: ''
 })
 const filterOptions = reactive({
-  name: false,
   supplier: false,
   category: false,
-  nickname: false
+})
+
+const supplierOptions = computed(() => {
+  const suppliers = store.list.map(p => p.supplier?.name).filter(Boolean)
+  return [...new Set(suppliers)].map(name => ({ name }))
+})
+
+
+const categoryOptions = computed(() => {
+  const categories = store.list.map(p => p.category?.name).filter(Boolean)
+  return [...new Set(categories)].map(name => ({ name }))
 })
 
 const headers = [
@@ -601,8 +599,8 @@ async function remove() {
 }
 
 function resetFilters() {
-  Object.assign(filters, { name: '', supplier: '', category: '', nickname: '' })
-  Object.assign(filterOptions, { name: false, supplier: false, category: false, nickname: false })
+  Object.assign(filters, { supplier: '', category: '' })
+  Object.assign(filterOptions, { supplier: false, category: false })
 }
 
 async function handlePDFExport() {
