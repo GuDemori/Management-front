@@ -1,164 +1,90 @@
+<!-- src/pages/Products.vue -->
 <template>
   <v-app>
     <v-container fluid class="py-4">
       <!-- Toolbar -->
-     <!-- Toolbar Desktop -->
-<!-- Toolbar Desktop -->
-<v-toolbar flat class="mb-4" v-show="$vuetify.display.mdAndUp">
-  <v-toolbar-title>Produtos</v-toolbar-title>
-  <v-spacer />
-  <v-text-field
-    v-model="searchQuery"
-    label="Buscar"
-    prepend-inner-icon="mdi-magnify"
-    dense
-    hide-details
-    outlined
-    class="mr-4"
-    style="max-width: 200px"
-  />
-  <v-select
-    v-model="selectedStockId"
-    :items="stock"
-    item-value="id"
-    item-title="name"
-    label="Estoque"
-    dense
-    outlined
-    hide-details
-    style="max-width: 250px"
-    class="mr-4"
-  />
-  <v-btn color="primary" @click="openDialog">Adicionar Produto</v-btn>
-  <v-btn color="secondary" class="ml-2" @click="exportDialog = true">
-    <v-icon left>mdi-file-pdf</v-icon>
-    Exportar
-  </v-btn>
-  <v-btn icon class="ml-2" @click="filterDialog = true">
-    <v-icon>mdi-filter-variant</v-icon>
-  </v-btn>
-</v-toolbar>
-
-<!-- Toolbar Mobile -->
-<!-- Toolbar Mobile -->
-<v-row class="mb-4" v-show="$vuetify.display.smAndDown">
-  <v-col cols="12">
-    <v-toolbar flat>
-      <v-toolbar-title>Produtos</v-toolbar-title>
-    </v-toolbar>
-  </v-col>
-
-  <v-col cols="12">
-    <v-text-field
-      v-model="searchQuery"
-      label="Buscar"
-      prepend-inner-icon="mdi-magnify"
-      dense
-      hide-details
-      outlined
-    />
-  </v-col>
-
-  <v-col cols="12">
-    <v-select
-      v-model="selectedStockId"
-      :items="stock"
-      item-value="id"
-      item-title="name"
-      label="Estoque"
-      dense
-      outlined
-      hide-details
-    />
-  </v-col>
-
-  <v-col cols="12">
-    <v-btn block color="primary" @click="openDialog">Adicionar Produto</v-btn>
-  </v-col>
-
-  <v-col cols="6">
-    <v-btn block color="secondary" @click="exportDialog = true">
-      <v-icon left>mdi-file-pdf</v-icon>
-      Exportar
-    </v-btn>
-  </v-col>
-
-  <v-col cols="6">
-    <v-btn block color="grey darken-1" @click="filterDialog = true">
-      <v-icon left>mdi-filter-variant</v-icon>
-      Filtros
-    </v-btn>
-  </v-col>
-</v-row>
-
-
+      <v-row class="mb-2">
+        <v-col>
+          <v-toolbar flat>
+            <v-toolbar-title>Produtos</v-toolbar-title>
+            <v-spacer />
+            <v-select
+              v-model="selectedStockId"
+              :items="stock"
+              item-value="id"
+              item-title="name"
+              label="Estoque"
+              class="mr-4"
+              dense
+              outlined
+              hide-details
+              style="max-width: 250px"
+              @update:modelValue="onStockChange"
+            />
+            <!-- Botão sempre visível -->
+            <v-btn color="primary" @click="openDialog">
+              Adicionar Produto
+            </v-btn>
+            <v-btn color="secondary" class="ml-2" @click="exportDialog = true">
+              <v-icon left>mdi-file-pdf</v-icon>
+              Exportar PDF
+            </v-btn>
+            <v-btn icon class="ml-2" @click="filterDialog = true">
+              <v-icon>mdi-filter-variant</v-icon>
+            </v-btn>
+          </v-toolbar>
+        </v-col>
+      </v-row>
 
       <!-- Alerta de Erro -->
-      <v-alert v-if="error" type="error" dismissible class="mb-4" @click:close="error = ''">
+      <v-alert
+        v-if="error"
+        type="error"
+        dismissible
+        class="mb-4"
+        @click:close="error = ''"
+      >
         {{ error }}
       </v-alert>
 
       <!-- Alerta de Sucesso -->
-      <v-alert v-if="successMessage" type="success" dismissible class="mb-4" @click:close="successMessage = ''">
+      <v-alert
+        v-if="successMessage"
+        type="success"
+        dismissible
+        class="mb-4"
+        @click:close="successMessage = ''"
+      >
         {{ successMessage }}
       </v-alert>
 
-      <!-- Grade de Produtos responsiva estilo Mix Campeão -->
-      <v-row dense>
-        <v-col
-          v-for="product in filteredProducts"
-          :key="product.id"
-          cols="6"
-          sm="6"
-          md="4"
-          lg="3"
-        >
-          <v-card class="text-center" outlined>
-            <v-card-title class="text-subtitle-1 font-weight-bold justify-center">
-              {{ product.name }}
-            </v-card-title>
+      <!-- Tabela de Produtos -->
+      <v-data-table
+        :headers="headers"
+        :items="filteredProducts"
+        :loading="loading"
+        class="elevation-1"
+        item-value="id"
+      >
+      <template #item.image_url="{ item }">
+        <v-avatar size="48" class="ma-2">
+          <v-img :src="item.image_url" alt="Imagem do produto" cover />
+        </v-avatar>
+      </template>
 
-            <v-img
-              :src="product.image_url"
-              aspect-ratio="1"
-              height="200"
-              contain
-              class="my-2"
-            />
-
-            <v-card-text class="pa-0">
-              <div class="text-caption mt-2">
-                <strong>Apelido:</strong>
-                {{ product.nicknames?.[0]?.nickname || 'N/A' }}
-              </div>
-              <div class="text-caption">
-                <strong>Descrição:</strong>
-                {{ product.description || 'Sem descrição' }}
-              </div>
-
-              <div
-                class="text-caption font-weight-medium mt-1 d-flex align-center justify-center"
-                :class="product.stock_quantity > 0 ? 'text-success' : 'text-error'"
-              >
-                <v-icon size="10" :color="product.stock_quantity > 0 ? 'green' : 'red'" class="mr-1">mdi-circle</v-icon>
-                {{ product.stock_quantity > 0 ? 'DISPONÍVEL' : 'INDISPONÍVEL' }}
-              </div>
-              <div class="d-flex justify-center mt-2">
-                <v-btn icon class="mr-1" @click.stop="edit(product)">
-                  <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-                <v-btn icon class="mr-1" @click.stop="askDelete(product)">
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-                <v-btn icon @click.stop="openQuantityDialog(product)">
-                  <v-icon>mdi-cart-plus</v-icon>
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
+        <template #item.actions="{ item }">
+          <!-- Botões sempre visíveis -->
+          <v-btn icon @click="edit(item)">
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn icon @click="askDelete(item)">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+          <v-btn icon @click="openQuantityDialog(item)">
+            <v-icon>mdi-cart-plus</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
 
       <v-dialog v-model="quantityDialog" max-width="400px">
         <v-card>
@@ -324,8 +250,6 @@ import { useProductsStore } from '@/stores/products'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 
-const searchQuery = ref('')
-
 const store = useProductsStore()
 const authStore = useAuthStore();
 
@@ -432,20 +356,13 @@ onMounted(async () => {
 
 const filteredProducts = computed(() =>
   store.list.filter(p => {
-    const matchNameOrNickname =
-      !searchQuery.value ||
-      p.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      p.nicknames?.some(n => n.nickname?.toLowerCase().includes(searchQuery.value.toLowerCase()))
-
     const byName = !filterOptions.name || p.name.toLowerCase().includes(filters.name.toLowerCase())
     const bySupplier = !filterOptions.supplier || p.supplier?.name.toLowerCase().includes(filters.supplier.toLowerCase())
     const byCategory = !filterOptions.category || p.category?.name.toLowerCase().includes(filters.category.toLowerCase())
     const byNickname = !filterOptions.nickname || p.nicknames?.some(n => n.nickname.toLowerCase().includes(filters.nickname.toLowerCase()))
-
-    return matchNameOrNickname && byName && bySupplier && byCategory && byNickname
+    return byName && bySupplier && byCategory && byNickname
   })
 )
-
 
 function openDialog() {
   Object.assign(form, {
