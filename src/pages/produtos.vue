@@ -1,8 +1,6 @@
 <template>
   <v-app>
     <v-container fluid class="py-4">
-      <!-- Toolbar -->
-     <!-- Toolbar Desktop -->
 <!-- Toolbar Desktop -->
 <v-toolbar flat class="mb-4" v-show="$vuetify.display.mdAndUp">
   <v-toolbar-title>Produtos</v-toolbar-title>
@@ -39,7 +37,6 @@
   </v-btn>
 </v-toolbar>
 
-<!-- Toolbar Mobile -->
 <!-- Toolbar Mobile -->
 <v-row class="mb-4" v-show="$vuetify.display.smAndDown">
   <v-col cols="12">
@@ -103,12 +100,12 @@
         {{ successMessage }}
       </v-alert>
 
-      <!-- Grade de Produtos responsiva estilo Mix Campeão -->
+      <!-- Grade de Produtos responsiva -->
       <v-row dense>
         <v-col
           v-for="product in filteredProducts"
           :key="product.id"
-          cols="6"
+          cols="12"
           sm="6"
           md="4"
           lg="3"
@@ -127,13 +124,29 @@
             />
 
             <v-card-text class="pa-0">
+              <template v-if="product.description">
+                <div class="text-caption">
+                  <strong>Descrição:</strong>
+                  <span v-if="!expandedProducts[product.id]">
+                    {{ product.description.slice(0, 20) }}
+                    <template v-if="product.description.length > 100">
+                      ... <a @click="toggleExpand(product.id)" style="color: #1a73e8; cursor: pointer; text-decoration: underline;">ver mais</a>
+                    </template>
+                  </span>
+                  <span v-else>
+                    {{ product.description }}
+                    <a @click="toggleExpand(product.id)" style="color: #1a73e8; cursor: pointer; text-decoration: underline;">ver menos</a>
+                  </span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="text-caption">
+                  <strong>Descrição:</strong> Sem descrição
+                </div>
+              </template>
               <div class="text-caption mt-2">
-                <strong>Apelido:</strong>
-                {{ product.nicknames?.[0]?.nickname || 'N/A' }}
-              </div>
-              <div class="text-caption">
-                <strong>Descrição:</strong>
-                {{ product.description || 'Sem descrição' }}
+                <strong>Preço de atacado:</strong>
+                {{ product.wholesale_price ? `R$ ${Number(product.wholesale_price).toFixed(2).replace('.', ',')}` : 'N/A' }}
               </div>
 
               <div
@@ -328,6 +341,8 @@ const searchQuery = ref('')
 
 const store = useProductsStore()
 const authStore = useAuthStore();
+
+const expandedProducts = reactive({})
 
 const confirmDeleteDialog = ref(false)
 const productToDelete = ref(null)
@@ -703,4 +718,7 @@ async function onStockChange(id) {
   }
 }
 
+function toggleExpand(id) {
+  expandedProducts[id] = !expandedProducts[id]
+}
 </script>
