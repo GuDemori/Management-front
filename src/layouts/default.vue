@@ -53,9 +53,6 @@
 
       <v-spacer />
 
-      <v-btn icon>
-        <v-icon class="text-white">mdi-magnify</v-icon>
-      </v-btn>
       <v-btn icon to="/carrinho" class="ml-2">
         <v-icon class="text-white">mdi-cart</v-icon>
       </v-btn>
