@@ -43,10 +43,11 @@
         <v-row no-gutters class="data-table-header">
           <v-col cols="1"><strong>ID</strong></v-col>
           <v-col cols="2"><strong>Nome</strong></v-col>
+          <v-col cols="2"><strong>Empresa</strong></v-col>
           <v-col cols="2"><strong>Documento</strong></v-col>
-          <v-col cols="2"><strong>Cidade</strong></v-col>
+          <v-col cols="1"><strong>Cidade</strong></v-col>
           <v-col cols="2"><strong>Telefone</strong></v-col>
-          <v-col cols="2"><strong>E-mail</strong></v-col>
+          <v-col cols="1"><strong>E-mail</strong></v-col>
           <v-col cols="1" class="text-center"><strong>Ações</strong></v-col>
         </v-row>
       </template>
@@ -193,7 +194,6 @@ const headers = [
   { text: 'Nome', value: 'name' },
   { text: 'Empresa', value: 'company_name' },
   { text: 'Documento', value: 'document' },
-  { text: 'Endereço', value: 'address' },
   { text: 'Cidade', value: 'city' },
   { text: 'Telefone', value: 'phone' },
   { text: 'E-mail', value: 'email' },
@@ -242,24 +242,42 @@ function openDialog() {
 }
 
 function edit(item) {
-  Object.assign(form, item)
+  Object.assign(form, {
+    id: item.id, // 👈 ESSENCIAL PARA EDIÇÃO
+    name: item.name ?? '',
+    company_name: item.company_name ?? '',
+    document: item.document ?? '',
+    address: item.address ?? '',
+    city: item.city ?? '',
+    phone: item.phone ?? '',
+    email: item.email ?? '',
+  })
+
   formRef.value?.resetValidation()
   dialog.value = true
 }
+
+
 
 function closeDialog() {
   dialog.value = false
 }
 
 async function save() {
-  if (!formRef.value.validate()) return
-
   error.value = ''
+
+  const isValid = await formRef.value?.validate()
+  if (!isValid) return
+
   try {
-    if (form.id) await axios.put(`/api/suppliers/${form.id}`, form)
-    else         await axios.post('/api/suppliers', form)
+    if (form.id) {
+      await axios.put(`/api/suppliers/${form.id}`, form)
+    } else {
+      await axios.post('/api/suppliers', form)
+    }
+
     await store.fetchAll()
-    formRef.value.resetValidation()
+    formRef.value?.resetValidation()
     dialog.value = false
     successDialog.value = true
   } catch (e) {
@@ -267,6 +285,7 @@ async function save() {
     error.value = e.response?.data?.message || 'Erro ao salvar fornecedor.'
   }
 }
+
 
 function confirmDelete(item) {
   deleteSupplier.value = item
