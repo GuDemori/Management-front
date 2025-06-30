@@ -26,6 +26,7 @@
     hide-details
     style="max-width: 250px"
     class="mr-4"
+    @update:model-value="onStockChange"
   />
   <v-btn color="primary" @click="openDialog">Adicionar Produto</v-btn>
   <v-btn color="secondary" class="ml-2" @click="exportDialog = true">
@@ -66,6 +67,7 @@
       dense
       outlined
       hide-details
+      @update:model-value="onStockChange"
     />
   </v-col>
 
