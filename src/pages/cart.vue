@@ -120,11 +120,6 @@ function clearCart() {
     router.push('/produtos')
 }
 
-watchEffect(() => {
-    console.log('user:', authStore.user)
-    console.log('isAdminOrCoworker:', isAdminOrCoworker.value)
-})
-
 async function submitOrder() {
     try {
         const user = authStore.user

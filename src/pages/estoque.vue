@@ -107,10 +107,10 @@ const editStock = (stock) => {
   dialog.value = true
 }
 
-function deleteStock(id) {
+async function deleteStock(id) {
   if (!confirm('Deseja realmente inativar este estoque?')) return
   axios
-    .patch(`/api/stock/${id}/deactivate`)
+    await axios.put(`/api/stock/${id}/deactivate`)
     .then(() => fetchStocks())
     .catch(() => {
       error.value = 'Erro ao inativar estoque.'

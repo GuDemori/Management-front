@@ -90,7 +90,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -113,6 +113,18 @@ const statusOptions = [
 onMounted(async () => {
     const { data } = await axios.get(`/api/orders/${route.params.id}`)
     order.value = data
+})
+
+watch(error, (val) => {
+    if (val) {
+        setTimeout(() => error.value = '', 3000)
+    }
+})
+
+watch(success, (val) => {
+    if (val) {
+        setTimeout(() => success.value = '', 3000)
+    }
 })
 
 async function updateStatus(newStatus) {

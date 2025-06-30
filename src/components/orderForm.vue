@@ -96,7 +96,6 @@ const rules = {
 }
 watch(() => props.order, (order) => {
   if (order) {
-    console.log('order.items:', order.items)
     form.value = {
       client: order.clientName || '',
       items: order.items?.map(i => ({
@@ -112,7 +111,6 @@ watch(() => props.order, (order) => {
 }, { immediate: true })
 
 watch(() => props.products, (val) => {
-  console.log('props.products:', val)
 }, { immediate: true })
 
 const handleAddProduct = () => {
