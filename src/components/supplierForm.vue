@@ -1,5 +1,5 @@
 <template>
-  <v-form ref="internalForm" @submit.prevent="submit">
+  <v-form ref="formRef" @submit.prevent="submit">
     <v-tabs v-model="tab" align-tabs="center" grow>
       <v-tab>
         <v-icon left>mdi-domain</v-icon>
@@ -24,16 +24,16 @@
           density="compact"
           required
         />
-
         <v-text-field
           v-model="form.company_name"
           label="Razão Social (Empresa)"
+          :rules="company_nameRules"
           placeholder="Ex.: Doces Giacomini"
           prepend-icon="mdi-domain"
           variant="outlined"
           density="compact"
+          required
         />
-
         <v-text-field
           v-model="form.document"
           label="Documento (CPF/CNPJ)"
@@ -42,29 +42,22 @@
           prepend-icon="mdi-card-account-details"
           variant="outlined"
           density="compact"
+          required
         />
       </v-window-item>
 
       <!-- Aba Contato -->
       <v-window-item :value="1">
         <v-text-field
-          v-model="form.address"
-          label="Endereço"
-          placeholder="Ex.: Rua das Flores, 123"
-          prepend-icon="mdi-map-marker"
-          variant="outlined"
-          density="compact"
-        />
-
-        <v-text-field
           v-model="form.city"
           label="Cidade"
+          :rules="cityRules"
           placeholder="Ex.: Cianorte"
           prepend-icon="mdi-city"
           variant="outlined"
           density="compact"
+          required
         />
-
         <v-text-field
           v-model="form.phone"
           label="Telefone"
@@ -73,10 +66,8 @@
           prepend-icon="mdi-phone"
           variant="outlined"
           density="compact"
-          inputmode="tel"
           required
         />
-
         <v-text-field
           v-model="form.email"
           label="E-mail"
@@ -85,6 +76,7 @@
           prepend-icon="mdi-email"
           variant="outlined"
           density="compact"
+          required
         />
       </v-window-item>
     </v-window>
@@ -92,20 +84,17 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps, defineExpose } from 'vue'
+import { ref, defineExpose, defineEmits, defineProps } from 'vue'
 
-const props = defineProps({
-  form: Object
+const formRef = ref(null)
+defineExpose({
+  validate: () => formRef.value?.validate(),
+  resetValidation: () => formRef.value?.resetValidation()
 })
+
+const props = defineProps({ form: Object })
 const emit = defineEmits(['submit'])
 const tab = ref(0)
-const internalForm = ref(null)
-
-// expõe validate() e resetValidation() para o pai
-defineExpose({
-  validate: () => internalForm.value?.validate(),
-  resetValidation: () => internalForm.value?.resetValidation()
-})
 
 function submit() {
   emit('submit')
@@ -117,15 +106,25 @@ const nameRules = [
 ]
 
 const documentRules = [
+  v => !!v || 'Documento é obrigatório',
   v => !v || v.length >= 11 || 'Documento inválido',
 ]
 
 const emailRules = [
-  v => !v || /.+@.+\..+/.test(v) || 'E-mail deve ser válido',
+  v => !!v || 'E-Mail é obrigatório',
+  v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido',
 ]
 
 const phoneRules = [
   v => !!v || 'Telefone é obrigatório',
   v => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || 'Telefone inválido',
+]
+
+const company_nameRules = [
+  v => !!v || 'Razão social é obrigatória'
+]
+
+const cityRules = [
+  v => !!v || 'Cidade é obrigatória'
 ]
 </script>

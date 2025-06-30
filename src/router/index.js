@@ -1,4 +1,3 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
 import LoginPage     from '@/pages/login.vue'
@@ -8,8 +7,12 @@ import ClientsPage   from '@/pages/clientes.vue'
 import SuppliersPage from '@/pages/fornecedores.vue'
 import ProductsPage  from '@/pages/produtos.vue'
 import OrdersPage    from '@/pages/pedidos.vue'
+import OrderDetails  from '@/pages/orderDetails.vue'
 import StockPage     from '@/pages/estoque.vue'
 import NotFound      from '@/pages/notFound.vue'
+import Users         from '@/pages/users.vue'
+import Cart          from '@/pages/cart.vue'
+
 import { useAuthStore } from '../stores/auth'
 const routes = [
   {
@@ -55,6 +58,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/pedidos/:id',
+    name: 'OrderDetailsPage',
+    component: OrderDetails,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/estoque',
     name: 'StockPage',
     component: StockPage,
@@ -69,13 +78,13 @@ const routes = [
   {
   path: '/usuarios',
   name: 'Users',
-  component: () => import('@/pages/users.vue'),
+  component: Users,
   meta: { requiresAuth: true, onlyAdmin: true }
   },
   {
     path: '/carrinho',
     name: 'CartPage',
-    component: () => import('@/pages/cart.vue'),
+    component: Cart,
     meta: { requiresAuth: true }
   }
 
