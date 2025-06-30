@@ -96,8 +96,6 @@ function fetchUsers() {
 }
 
 function editUser(user) {
-  // 🟡 Em uma próxima versão: preencher o form com dados e abrir o modal
-  console.log('editar usuário:', user)
 }
 
 onMounted(fetchUsers)

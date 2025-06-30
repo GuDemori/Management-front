@@ -412,7 +412,6 @@ onMounted(async () => {
   if (authStore.isLogged) {
     authStore.fetchUser()
       .then(() => {
-        console.log('Usuário autenticado:', authStore.user)
       })
       .catch(error => {
         console.error('Erro ao buscar usuário:', error)
