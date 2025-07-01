@@ -104,6 +104,8 @@ import axios from 'axios'
 import EstablishmentTypeDialog from '@/components/establishmentTypeDialog.vue'
 import UserDialog from '@/components/userDialog.vue'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
+
 
 // Estados
 const drawer = ref(true)
@@ -111,6 +113,7 @@ const menu = ref(false)
 const userRole = ref(null)
 const establishmentDialog = ref(false)
 const userDialog = ref(false)
+const auth = useAuthStore()
 
 // Router
 const route = useRoute()
@@ -140,8 +143,8 @@ const isV1 = computed(() => userRole.value === 'v1')
 const isClient = computed(() => userRole.value === 'client')
 
 function logout() {
-  localStorage.removeItem('authToken')
-  router.push('/login')
+  auth.logout()
+  router.replace({ name: 'LoginPage' })
 }
 
 </script>

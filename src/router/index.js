@@ -125,11 +125,13 @@ router.beforeEach(async (to, from, next) => {
         return next({ name: 'LoginPage' })
     }
   }
- if (token && !authStore.user) {
+if (token && !authStore.user) {
   try {
     await authStore.fetchUser()
   } catch (e) {
-    authStore.logout()
+    if (authStore.isLogged) {
+      authStore.logout()
+    }
     return next({ name: 'LoginPage' })
   }
 }
