@@ -145,6 +145,7 @@ import { useClientsStore } from '@/stores/clients'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import ClientForm from '@/components/clientForm.vue'
+import { exportPdfWithLogo } from '@/utils/exportPDF'
 
 const store = useClientsStore()
 const formRef = ref(null)
@@ -287,10 +288,6 @@ function resetFilters() {
 }
 
 function handlePDFExport() {
-  const doc = new jsPDF()
-  doc.setFontSize(18)
-  doc.text('Lista de Clientes', 14, 22)
-
   const headers = ['Nome', 'Tipo de Estabelecimento', 'Cidade', 'Endereço']
 
   const rows = filteredClients.value.map(c => [
@@ -300,15 +297,12 @@ function handlePDFExport() {
     `${c.address}, ${c.number}`
   ])
 
-  autoTable(doc, {
-    head: [headers],
-    body: rows,
-    startY: 30,
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [41, 128, 185] }
+  exportPdfWithLogo({
+    title: 'Lista de Clientes',
+    filename: 'clientes.pdf',
+    headers,
+    rows
   })
-
-  doc.save('clientes.pdf')
 }
 
 </script>

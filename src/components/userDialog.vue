@@ -105,6 +105,7 @@
                   <v-text-field
                     v-model="form.cep"
                     label="CEP"
+                    v-mask="'#####-###'" 
                     prepend-inner-icon="mdi-map-marker"
                     :rules="[rules.required]"
                     @blur="fetchAddress"

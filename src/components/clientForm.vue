@@ -81,6 +81,7 @@
         <v-text-field
           v-model="form.cep"
           label="CEP"
+          v-mask="'#####-###'" 
           :rules="[rules.required]"
           prepend-inner-icon="mdi-map-marker"
           :loading="loadingCep"
@@ -193,10 +194,6 @@ const fetchEstablishmentTypes = async () => {
   }
 }
 
-const phoneRules = [
-  v => !!v || 'Telefone é obrigatório',
-  v => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || 'Telefone inválido',
-]
 import { isValidCPF, isValidCNPJ } from '@/utils/validators'
 
 function validateDocument(value) {

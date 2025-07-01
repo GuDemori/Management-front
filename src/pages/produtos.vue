@@ -329,6 +329,7 @@ import autoTable from 'jspdf-autotable';
 import { useProductsStore } from '@/stores/products'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { exportPdfWithLogo } from '@/utils/exportPDF'
 
 const searchQuery = ref('')
 
@@ -606,8 +607,6 @@ function resetFilters() {
 
 async function handlePDFExport() {
   const doc = new jsPDF()
-  doc.setFontSize(18)
-  doc.text('Lista de Produtos', 14, 22)
 
   const max = 30
   const priceKey = selectedPrice.value === 'Atacado' ? 'wholesale_price' : 'retail_price'
@@ -630,23 +629,61 @@ async function handlePDFExport() {
     })
   )
 
-  autoTable(doc, {
-    head: [['Imagem', 'ID', 'Nome', 'Descrição', 'Fornecedor', 'Categoria', priceLabel]],
-    body: rows.map(r => [
-      { content: '', styles: { cellWidth: 20, minCellHeight: 20 }, img: r.image },
-      ...r.data
-    ]),
-    didDrawCell: function (data) {
-      if (data.column.index === 0 && data.cell.section === 'body') {
-        doc.addImage(data.row.raw[0].img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 16, 16)
-      }
-    },
-    startY: 30,
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [41, 128, 185] }
-  })
+  // Carrega a logo e, quando disponível, chama autoTable dentro do utilitário
+  const logo = new Image()
+  logo.src = new URL('@/assets/logo.png', import.meta.url).href
 
-  doc.save(`produtos_preco_${selectedPrice.value.toLowerCase()}.pdf`)
+  logo.onload = () => {
+    const logoX = 14
+    const logoY = 12
+    const logoWidth = 30
+    const logoHeight = 20
+
+    doc.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight)
+
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Lista de Produtos', logoX + logoWidth + 10, logoY + 8)
+
+    const dataHora = new Date().toLocaleString('pt-BR')
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Emitido em: ${dataHora}`, 200 - 14, logoY + 8, { align: 'right' })
+
+    doc.setDrawColor(180)
+    doc.line(14, logoY + logoHeight + 2, 200 - 14, logoY + logoHeight + 2)
+
+    autoTable(doc, {
+      head: [['Imagem', 'ID', 'Nome', 'Descrição', 'Fornecedor', 'Categoria', priceLabel]],
+      body: rows.map(r => [
+        { content: '', styles: { cellWidth: 20, minCellHeight: 20 }, img: r.image },
+        ...r.data
+      ]),
+      didDrawCell: function (data) {
+        if (data.column.index === 0 && data.cell.section === 'body') {
+          doc.addImage(data.row.raw[0].img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 16, 16)
+        }
+      },
+      startY: logoY + logoHeight + 8,
+      margin: { left: 14, right: 14 },
+      styles: { fontSize: 10 },
+      headStyles: {
+        fillColor: [33, 150, 243],
+        halign: 'center',
+        valign: 'middle',
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages()
+        doc.setFontSize(9)
+        doc.text(`Página ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
+      },
+    })
+
+    doc.save(`produtos_preco_${selectedPrice.value.toLowerCase()}.pdf`)
+  }
 }
 
 function toBase64(url) {
