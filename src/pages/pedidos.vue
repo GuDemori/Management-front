@@ -109,7 +109,17 @@
         <template #item.address="{ item }">
           {{ item.addressCity }} - {{ item.addressStreet }}, {{ item.addressNumber }}
         </template>
-
+        <template #item.status="{ item }">
+          <v-chip
+            :style="getStatusStyle(item.status)"
+            class="text-capitalize font-weight-medium"
+            size="small"
+            rounded
+            variant="flat"
+          >
+            {{ item.status }}
+          </v-chip>
+        </template>
       </v-data-table>
 
       <!-- Formulário -->
@@ -246,4 +256,43 @@ function handleEditClick(order) {
   editOrder(order)
 }
 
+const getStatusStyle = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'em espera':
+      return {
+        backgroundColor: '#3c2d2d',
+        color: '#f28b82'
+      }
+    case 'preparando':
+      return {
+        backgroundColor: '#3c352b',
+        color: '#fbbc04'
+      }
+    case 'à caminho':
+      return {
+        backgroundColor: '#383628',
+        color: '#fff475'
+      }
+    case 'entregue':
+      return {
+        backgroundColor: '#29352b',
+        color: '#81c995'
+      }
+    case 'pago':
+      return {
+        backgroundColor: '#213531',
+        color: '#66bb6a'
+      }
+    case 'cancelado':
+      return {
+        backgroundColor: '#33373a',
+        color: '#90a4ae'
+      }
+    default:
+      return {
+        backgroundColor: '#2e2e2e',
+        color: '#ccc'
+      }
+  }
+}
 </script>
