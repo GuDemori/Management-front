@@ -61,13 +61,10 @@ const selectedStock = ref(null)
 const stocks = ref([])
 
 const headers = [
-  { text: 'Produto', value: 'productName' },
-  { text: 'Quantidade', value: 'quantity' },
-  { text: 'Localização', value: 'location' },
-  { text: 'Endereço', value: 'address' },
-  { text: 'Cidade', value: 'city' },
-  { text: 'Estado', value: 'state' },
-  { text: 'Ações', value: 'actions', sortable: false },
+  { title: 'Endereço', key: 'address' },
+  { title: 'Cidade', key: 'city' },
+  { title: 'Estado', key: 'state' },
+  { title: 'Ações', key: 'actions', sortable: false },
 ]
 
 const filteredStocks = computed(() => stocks.value.filter(s => s.isActive))
