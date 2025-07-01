@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="model" max-width="650px" persistent>
+  <v-dialog v-model="model" max-width="650px">
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span class="text-h6">Criar Novo Usuário</span>
@@ -62,25 +62,26 @@
                   />
                 </v-col>
 
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.password"
-                    label="Senha"
-                    type="password"
-                    prepend-inner-icon="mdi-lock"
-                    :rules="[rules.required]"
-                  />
-                </v-col>
+                <v-col cols="12" sm="6" v-if="!props.isEdit">
+  <v-text-field
+    v-model="form.password"
+    label="Senha"
+    type="password"
+    prepend-inner-icon="mdi-lock"
+    :rules="[rules.required]"
+  />
+</v-col>
 
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="form.confirmPassword"
-                    label="Confirmar Senha"
-                    type="password"
-                    prepend-inner-icon="mdi-lock-check"
-                    :rules="[rules.required, v => v === form.password || 'Senhas diferentes']"
-                  />
-                </v-col>
+<v-col cols="12" sm="6" v-if="!props.isEdit">
+  <v-text-field
+    v-model="form.confirmPassword"
+    label="Confirmar Senha"
+    type="password"
+    prepend-inner-icon="mdi-lock-check"
+    :rules="[rules.required, v => v === form.password || 'Senhas diferentes']"
+  />
+</v-col>
+
 
                 <v-col cols="12">
                   <v-text-field
@@ -136,21 +137,23 @@
                   />
                 </v-col>
 
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="6" v-if="!props.isEdit">
                   <v-text-field
-                    v-model="form.district"
-                    label="Bairro"
-                    prepend-inner-icon="mdi-city"
+                    v-model="form.password"
+                    label="Senha"
+                    type="password"
+                    prepend-inner-icon="mdi-lock"
                     :rules="[rules.required]"
                   />
                 </v-col>
 
-                <v-col cols="12" sm="6">
+                <v-col cols="12" sm="6" v-if="!props.isEdit">
                   <v-text-field
-                    v-model="form.city"
-                    label="Cidade"
-                    prepend-inner-icon="mdi-city-variant"
-                    :rules="[rules.required]"
+                    v-model="form.confirmPassword"
+                    label="Confirmar Senha"
+                    type="password"
+                    prepend-inner-icon="mdi-lock-check"
+                    :rules="[rules.required, v => v === form.password || 'Senhas diferentes']"
                   />
                 </v-col>
 
@@ -183,7 +186,11 @@
 import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
 
-const props = defineProps({ modelValue: Boolean })
+const props = defineProps({
+  modelValue: Boolean,
+  form: Object,
+  isEdit: Boolean,
+})
 const emit = defineEmits(['update:modelValue'])
 
 const model = ref(false)
@@ -194,22 +201,12 @@ const establishmentTypes = ref([])
 
 watch(() => props.modelValue, v => model.value = v)
 watch(model, v => emit('update:modelValue', v))
-
-const form = ref({
-  establishment_type_id: null,
-  name: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  role: '',
-  document: '',
-  cep: '',
-  address: '',
-  number: '',
-  complement: '',
-  district: '',
-  city: '',
-  state: '',
+watch(() => props.modelValue, v => {
+  model.value = v
+  if (v) {
+    step.value = 0
+    error.value = ''
+  }
 })
 
 const roles = [
@@ -264,13 +261,20 @@ const save = async () => {
   if (!valid) return
 
   try {
-    const payload = { ...form.value }
+    const payload = { ...props.form }
     delete payload.confirmPassword
-    await axios.post('/api/users', payload)
+
+    if (props.isEdit) {
+      delete payload.password
+      await axios.put(`/api/users/${props.form.id}`, payload)
+    } else {
+      await axios.post('/api/users', payload)
+    }
+
     emit('update:modelValue', false)
     formRef.value.reset()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Erro ao criar usuário.'
+    error.value = err.response?.data?.message || 'Erro ao salvar usuário.'
   }
 }
 

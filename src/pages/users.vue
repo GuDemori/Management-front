@@ -44,15 +44,39 @@
       </template>
 
       <template #item.actions="{ item }">
-        <v-icon small class="me-2" color="primary" @click="editUser(item)">
-          mdi-pencil
-        </v-icon>
+        <v-btn icon @click="editUser(item)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn icon @click="confirmRemove(item)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
       </template>
     </v-data-table>
 
-    <!-- Modal de criação -->
-    <UserDialog v-model="dialog" />
+    <UserDialog
+      v-model="dialog"
+      :form="form"
+      :isEdit="isEdit"
+      @submit="fetchUsers"
+      ref="userForm"
+    />
+
   </v-container>
+  <v-dialog v-model="confirmDialog" max-width="400">
+    <v-card>
+      <v-card-title class="text-h6">Confirmar Ação</v-card-title>
+      <v-card-text>
+        Deseja realmente desativar o usuário
+        <strong>{{ userToRemove?.name }}</strong>?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text @click="confirmDialog = false">Cancelar</v-btn>
+        <v-btn color="error" @click="deactivateUser">Confirmar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
 </template>
 
 <script setup>
@@ -65,14 +89,18 @@ const dialog = ref(false)
 const loading = ref(false)
 const error = ref('')
 const search = ref('')
+const confirmDialog = ref(false)
+const userToRemove = ref(null)
+const userForm = ref(null)
+const form = ref({})
+const isEdit = ref(false)
 
 const headers = [
-  { text: 'Nome', value: 'name' },
-  { text: 'Email', value: 'email' },
-  { text: 'CPF/CNPJ', value: 'document' },
-  { text: 'Tipo de Estabelecimento', value: 'establishment_type.name' },
-  { text: 'Tipo de Acesso', value: 'role' },
-  { text: 'Ações', value: 'actions', sortable: false },
+  { title: 'Nome', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'CPF/CNPJ', key: 'document' },
+  { title: 'Tipo de Acesso', key: 'role' },
+  { title: 'Ações', key: 'actions', sortable: false },
 ]
 
 function formatRole(role) {
@@ -81,11 +109,11 @@ function formatRole(role) {
   return 'Cliente'
 }
 
-function fetchUsers() {
+async function fetchUsers() {
   loading.value = true
-  axios.get('/api/users')
+  await axios.get('/api/users/all')
     .then(res => {
-      users.value = res.data
+      users.value = res.data.filter(u => u.is_active)
     })
     .catch(() => {
       error.value = 'Erro ao buscar usuários.'
@@ -96,7 +124,30 @@ function fetchUsers() {
 }
 
 function editUser(user) {
+  form.value = { ...user, password: '', confirmPassword: '' }
+  isEdit.value = true
+  dialog.value = true
 }
+
+function confirmRemove(user) {
+  userToRemove.value = user
+  confirmDialog.value = true
+}
+
+async function deactivateUser() {
+  if (!userToRemove.value) return
+
+  try {
+    await axios.delete(`/api/users/${userToRemove.value.id}`)
+    confirmDialog.value = false
+    userToRemove.value = null
+    await fetchUsers()
+  } catch (err) {
+    console.error(err)
+    error.value = 'Erro ao desativar usuário.'
+  }
+}
+
 
 onMounted(fetchUsers)
 </script>

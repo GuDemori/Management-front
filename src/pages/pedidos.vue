@@ -184,10 +184,6 @@ onMounted(async () => {
     const res = await axios.get('/api/products')
     products.value = res.data
 
-    console.log('Pedidos carregados:', store.list)
-    console.log('Valor inicial de search:', search.value)
-    console.log('Valor inicial de statusFilter:', statusFilter.value)
-    console.log('Resultado do filteredOrders:', filteredOrders.value)
   } catch (e) {
     error.value = 'Erro ao carregar pedidos.'
   }
