@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="model" max-width="700px" persistent>
+  <v-dialog v-model="model" max-width="700px">
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         <span class="text-h6">Tipos de Estabelecimento</span>
@@ -43,6 +43,7 @@
             label="Código (3 letras)"
             :rules="[rules.required, rules.code]"
             maxlength="3"
+            @input="form.code = form.code.toUpperCase()"
           />
 
           <div class="d-flex justify-end mt-4">
@@ -98,9 +99,9 @@ watch(() => props.modelValue, value => model.value = value)
 watch(model, value => emit('update:modelValue', value))
 
 const headers = [
-  { text: 'Nome', value: 'name' },
-  { text: 'Código', value: 'code' },
-  { text: 'Ações', value: 'actions', sortable: false },
+  { title: 'Nome', key: 'name', sortable: true },
+  { title: 'Código', key: 'code', sortable: true },
+  { title: 'Ações', key: 'actions', sortable: false },
 ]
 
 const rules = {

@@ -177,7 +177,7 @@ onMounted(async () => {
 
     if (['admin', 'coworker'].includes(authStore.user.role)) {
         try {
-            const resp = await axios.get('/api/users/clients')
+            const resp = await axios.get('/api/clients')
 
             const users = Array.isArray(resp.data) ? resp.data : []
             clients.value = users
