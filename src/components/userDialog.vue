@@ -182,11 +182,11 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
+import { computed } from 'vue'
 
 const props = defineProps({ modelValue: Boolean })
 const emit = defineEmits(['update:modelValue'])
 
-const model = ref(false)
 const step = ref(0)
 const formRef = ref(null)
 const error = ref('')
@@ -274,5 +274,11 @@ const save = async () => {
   }
 }
 
+
 onMounted(fetchEstablishmentTypes)
+const model = computed({
+  get: () => props.modelValue,
+  set: v => emit('update:modelValue', v)
+})
+
 </script>

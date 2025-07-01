@@ -1,102 +1,150 @@
 <template>
-  <v-container fluid class="py-4">
-    <!-- Título + Botão -->
-    <v-row class="mb-4 justify-space-between align-center">
-      <v-col cols="auto">
-        <h2 class="text-h5 font-weight-bold">Usuários</h2>
-      </v-col>
-      <v-col cols="auto">
-        <v-btn color="primary" @click="dialog = true">
-          <v-icon left>mdi-account-plus</v-icon>
-          Novo Usuário
-        </v-btn>
-      </v-col>
+  <v-container fluid>
+    <!-- Filtro + botão -->
+    <v-row class="d-flex justify-space-between mb-4">
+      <v-text-field
+        v-model="search"
+        label="Filtrar por nome"
+        prepend-inner-icon="mdi-magnify"
+        density="compact"
+        variant="outlined"
+        @input="fetchUsers"
+      />
+      <v-btn color="primary" @click="openCreateDialog">Criar Usuário</v-btn>
     </v-row>
 
-    <!-- Alerta de erro -->
-    <v-alert v-if="error" type="error" class="mb-4" dense>
-      {{ error }}
+    <!-- Erro -->
+    <v-alert v-if="userStore.error" type="error" class="mb-4">
+      {{ userStore.error }}
     </v-alert>
 
     <!-- Tabela de usuários -->
-    <v-data-table
-      :headers="headers"
-      :items="users"
-      :loading="loading"
-      :search="search"
-      class="elevation-1"
-      item-value="id"
-      density="comfortable"
-    >
-      <template #top>
-        <v-text-field
-          v-model="search"
-          label="Pesquisar"
-          prepend-inner-icon="mdi-magnify"
-          clearable
-          density="compact"
-          class="mx-4"
-        />
+    <v-data-table :headers="headers" :items="filteredUsers" class="elevation-1">
+      <template #item.isActive="{ item }">
+        <v-chip :color="item.isActive ? 'green' : 'red'" dark>
+          {{ item.isActive ? 'Ativo' : 'Inativo' }}
+        </v-chip>
       </template>
-
-      <template #item.role="{ item }">
-        {{ formatRole(item.role) }}
-      </template>
-
       <template #item.actions="{ item }">
-        <v-icon small class="me-2" color="primary" @click="editUser(item)">
-          mdi-pencil
-        </v-icon>
+        <v-btn icon @click="deactivateUser(item.id)">
+          <v-icon color="red">mdi-delete</v-icon>
+        </v-btn>
       </template>
     </v-data-table>
 
-    <!-- Modal de criação -->
-    <UserDialog v-model="dialog" />
+    <!-- Modal -->
+    <v-dialog v-model="openDialog" max-width="500px" persistent>
+      <v-card>
+        <v-card-title>
+          <span class="text-h6">Criar Usuário</span>
+          <v-spacer />
+          <v-btn icon @click="openDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text>
+          <UserForm
+            v-if="openDialog"
+            v-model="form"
+            :isEdit="false"
+            ref="formComponent"
+          />
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+  color="primary"
+  @click="handleSave"
+>
+  Salvar
+</v-btn>
+
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import UserDialog from '@/components/userDialog.vue'
+import { ref, computed, onMounted } from 'vue'
+import { useUsersStore } from '@/stores/users'
+import UserForm from '@/components/userForm.vue'
 
-const users = ref([])
-const dialog = ref(false)
-const loading = ref(false)
-const error = ref('')
+const userStore = useUsersStore()
 const search = ref('')
+const openDialog = ref(false)
+const formComponent = ref()
 
+const form = ref({
+  name: '',
+  email: '',
+  password: '',
+  role: '',
+  document: ''
+})
+
+
+const handleSave = async () => {
+  const valid = await formComponent.value?.validate()
+  if (valid) {
+    await saveUser()
+  }
+}
+// Cabeçalhos da tabela
 const headers = [
-  { text: 'Nome', value: 'name' },
-  { text: 'Email', value: 'email' },
-  { text: 'CPF/CNPJ', value: 'document' },
-  { text: 'Tipo de Estabelecimento', value: 'establishment_type.name' },
-  { text: 'Tipo de Acesso', value: 'role' },
-  { text: 'Ações', value: 'actions', sortable: false },
+  { title: 'Nome', key: 'name' },
+  { title: 'Email', key: 'email' },
+  { title: 'Documento', key: 'document' },
+  { title: 'Tipo', key: 'role' },
+  { title: 'Status', key: 'isActive' },
+  { title: 'Ações', key: 'actions', sortable: false }
 ]
 
-function formatRole(role) {
-  if (role === 'admin') return 'Administrador'
-  if (role === 'coworker') return 'Funcionário'
-  return 'Cliente'
+// Buscar usuários
+const fetchUsers = () => {
+  userStore.fetchUsers(search.value)
 }
 
-function fetchUsers() {
-  loading.value = true
-  axios.get('/api/users')
-    .then(res => {
-      users.value = res.data
-    })
-    .catch(() => {
-      error.value = 'Erro ao buscar usuários.'
-    })
-    .finally(() => {
-      loading.value = false
-    })
+// Salvar novo usuário
+const saveUser = async () => {
+  try {
+    await userStore.createUser(form.value)
+    openDialog.value = false
+    resetForm()
+  } catch (err) {
+    console.error('Erro ao criar usuário:', err)
+  }
 }
 
-function editUser(user) {
+// Desativar
+const deactivateUser = async (id) => {
+  if (!confirm('Tem certeza que deseja desativar este usuário?')) return
+  await userStore.deactivateUser(id)
 }
+
+// Resetar form
+const resetForm = () => {
+  form.value = {
+    name: '',
+    email: '',
+    password: '',
+    role: '',
+    document: ''
+  }
+}
+
+// Abrir modal
+const openCreateDialog = () => {
+  resetForm()
+  openDialog.value = true
+}
+
+// Filtrar apenas admin/coworker
+const filteredUsers = computed(() =>
+  userStore.users.filter(u => ['admin', 'coworker'].includes(u.role))
+)
 
 onMounted(fetchUsers)
 </script>
