@@ -1,96 +1,147 @@
 <template>
-  <v-form ref="formRef" @submit.prevent="submit">
+  <v-form ref="localFormRef" @submit.prevent="submit">
     <v-tabs v-model="tab" align-tabs="center" grow>
-      <v-tab>
-        <v-icon left>mdi-account</v-icon>
-        Dados Pessoais
-      </v-tab>
-      <v-tab>
-        <v-icon left>mdi-phone</v-icon>
-        Contato
-      </v-tab>
+      <v-tab>Dados do Cliente</v-tab>
+      <v-tab>Endereço</v-tab>
     </v-tabs>
 
     <v-window v-model="tab" class="mt-4">
-      <!-- Aba Dados Pessoais -->
+      <!-- Aba 1: Dados do Cliente -->
       <v-window-item :value="0">
-        <v-text-field
-          v-model="form.fullName"
-          label="Nome Completo"
-          :rules="nameRules"
-          placeholder="Ex.: João da Silva"
-          prepend-icon="mdi-account"
+        <v-select
+          class="input-field"
+          v-model="form.establishment_type_id"
+          :items="establishmentTypes"
+          item-title="name"
+          item-value="id"
+          label="Tipo de Estabelecimento"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-store"
           variant="outlined"
           density="compact"
-          required
         />
 
         <v-text-field
-          v-model="form.cpfCnpj"
+          v-model="form.name"
+          label="Nome do Estabelecimento"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-account"
+          variant="outlined"
+          density="compact"
+        />
+
+        <v-text-field
+          v-model="form.document"
           label="CPF ou CNPJ"
-          :rules="cpfCnpjRules"
-          placeholder="Ex.: 000.000.000-00 ou 00.000.000/0000-00"
-          prepend-icon="mdi-card-account-details"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-card-account-details"
           variant="outlined"
           density="compact"
-          required
         />
 
         <v-text-field
-          v-model="form.birthDate"
-          label="Data de Nascimento"
-          placeholder="Ex.: 01/01/2000"
-          prepend-icon="mdi-calendar"
+          v-model="form.email"
+          label="Email"
+          :rules="[rules.required, rules.email]"
+          prepend-inner-icon="mdi-email"
           variant="outlined"
           density="compact"
-          type="date"
-          required
+        />
+
+        <v-text-field
+          v-if="!props.isEdit"
+          v-model="form.password"
+          :type="showPassword ? 'text' : 'password'"
+          label="Senha"
+          :rules="[rules.required, rules.min]"
+          prepend-inner-icon="mdi-lock"
+          :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="showPassword = !showPassword"
+          variant="outlined"
+          density="compact"
+        />
+
+        <v-text-field
+          v-if="!props.isEdit"
+          v-model="form.confirmPassword"
+          :type="showConfirmPassword ? 'text' : 'password'"
+          label="Confirmar Senha"
+          :rules="[rules.required, rules.match]"
+          prepend-inner-icon="mdi-lock-check"
+          :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="showConfirmPassword = !showConfirmPassword"
+          variant="outlined"
+          density="compact"
         />
       </v-window-item>
 
-      <!-- Aba Contato -->
+      <!-- Aba 2: Endereço -->
       <v-window-item :value="1">
         <v-text-field
-          v-model="form.address"
-          label="Endereço"
-          placeholder="Ex.: Rua das Flores, 123 - Centro"
-          prepend-icon="mdi-map-marker"
+          v-model="form.cep"
+          label="CEP"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-map-marker"
+          :loading="loadingCep"
+          :error="!!errorCep"
+          :error-messages="errorCep"
           variant="outlined"
           density="compact"
-          required
+          @blur="fetchAddress"
+        />
+
+        <v-text-field
+          v-model="form.address"
+          label="Logradouro"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-home"
+          variant="outlined"
+          density="compact"
+        />
+
+        <v-text-field
+          v-model="form.number"
+          label="Número"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-numeric"
+          variant="outlined"
+          density="compact"
+        />
+
+        <v-text-field
+          v-model="form.complement"
+          label="Complemento"
+          prepend-inner-icon="mdi-text"
+          variant="outlined"
+          density="compact"
+        />
+
+        <v-text-field
+          v-model="form.district"
+          label="Bairro"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-city"
+          variant="outlined"
+          density="compact"
         />
 
         <v-text-field
           v-model="form.city"
           label="Cidade"
-          placeholder="Ex.: Cianorte"
-          prepend-icon="mdi-city"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-city-variant"
           variant="outlined"
           density="compact"
-          required
         />
 
-        <v-text-field
-          v-model="form.phone"
-          label="Telefone"
-          :rules="phoneRules"
-          placeholder="Ex.: (44) 99999-0000"
-          prepend-icon="mdi-phone"
+        <v-select
+          v-model="form.state"
+          :items="states"
+          label="Estado"
+          :rules="[rules.required]"
+          prepend-inner-icon="mdi-map"
           variant="outlined"
           density="compact"
-          required
-          inputmode="tel"
-        />
-
-        <v-text-field
-          v-model="form.email"
-          label="E-mail"
-          :rules="emailRules"
-          placeholder="Ex.: exemplo@email.com"
-          prepend-icon="mdi-email"
-          variant="outlined"
-          density="compact"
-          required
         />
       </v-window-item>
     </v-window>
@@ -98,38 +149,80 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from 'vue'
+import { ref, defineProps, defineEmits, onMounted } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
   form: Object,
-  formRef: Object
+  formRef: Object,
+  isEdit: Boolean
 })
 
 const emit = defineEmits(['submit'])
 
-function submit() {
-  emit('submit')
-}
+const submit = () => emit('submit')
 
 const tab = ref(0)
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+const loadingCep = ref(false)
+const errorCep = ref('')
+const establishmentTypes = ref([])
+const localFormRef = ref(null)
 
-const nameRules = [
-  v => !!v || 'Nome é obrigatório',
-  v => (v && v.length >= 5) || 'Nome deve ter ao menos 5 caracteres',
+const states = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
 ]
 
-const cpfCnpjRules = [
-  v => !!v || 'CPF ou CNPJ é obrigatório',
-  v => (v && v.length >= 11) || 'Informe um CPF/CNPJ válido',
-]
+const rules = {
+  required: v => !!v || 'Este campo é obrigatório',
+  email: v => /.+@.+\..+/.test(v) || 'Email inválido',
+  min: v => (v && v.length >= 6) || 'Senha deve ter ao menos 6 caracteres',
+  match: v => v === props.form.password || 'As senhas não coincidem'
+}
 
-const emailRules = [
-  v => !!v || 'E-mail é obrigatório',
-  v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido',
-]
+const fetchEstablishmentTypes = async () => {
+  try {
+    const { data } = await axios.get('/api/establishment-types')
+    establishmentTypes.value = data
+  } catch {
+    console.error('Erro ao buscar tipos de estabelecimento')
+  }
+}
 
-const phoneRules = [
-  v => !!v || 'Telefone é obrigatório',
-  v => /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(v) || 'Telefone inválido',
-]
+const fetchAddress = async () => {
+  errorCep.value = ''
+  const raw = props.form.cep?.replace(/\D/g, '')
+  if (!raw || raw.length !== 8) {
+    errorCep.value = 'CEP deve ter 8 dígitos'
+    return
+  }
+
+  loadingCep.value = true
+  try {
+    const { data } = await axios.get(`/api/cep/${raw}`)
+    if (!data) {
+      errorCep.value = 'CEP não encontrado'
+    } else {
+      props.form.address     = data.address
+      props.form.district    = data.district
+      props.form.city        = data.city
+      props.form.state       = data.state
+      props.form.complement  = data.complement || ''
+    }
+  } catch {
+    errorCep.value = 'Erro ao buscar CEP'
+  } finally {
+    loadingCep.value = false
+  }
+}
+
+  function validate() {
+    return localFormRef.value?.validate()
+  }
+
+defineExpose({ validate })
+onMounted(fetchEstablishmentTypes)
 </script>

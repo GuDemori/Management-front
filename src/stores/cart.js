@@ -17,7 +17,7 @@ export const useCartStore = defineStore('cart', {
         updateItem(updatedItem) {
             const index = this.items.findIndex(item => item.id === updatedItem.id);
             if (index !== -1) {
-              this.items[index] = updatedItem;  // Substitui o item no carrinho
+                this.items[index] = updatedItem;
             }
         },
         remove(id) {
