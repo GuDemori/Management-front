@@ -117,6 +117,7 @@
               <v-text-field
                 v-model="cep"
                 label="CEP"
+                v-mask="'#####-###'" 
                 :rules="[rules.required]"
                 prepend-inner-icon="mdi-map-marker"
                 :loading="loadingCep"

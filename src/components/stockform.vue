@@ -6,7 +6,7 @@
 
     <v-card-text>
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field v-model="form.cep" label="CEP" prepend-icon="mdi-map-search" :rules="[rules.required]" @blur="fetchAddress" />
+        <v-text-field v-model="form.cep"  v-mask="'#####-###'" label="CEP" prepend-icon="mdi-map-search" :rules="[rules.required]" @blur="fetchAddress" />
         <v-text-field v-model="form.address" label="Endereço" prepend-icon="mdi-road" :rules="[rules.required]" />
         <v-text-field v-model="form.number" label="Número" prepend-icon="mdi-numeric" :rules="[rules.required]" />
         <v-text-field v-model="form.city" label="Cidade" prepend-icon="mdi-city" :rules="[rules.required]" />

@@ -61,6 +61,7 @@
         <v-text-field
           v-model="form.phone"
           label="Telefone"
+          v-mask="'(##) #####-####'" 
           :rules="phoneRules"
           placeholder="Ex.: (44) 99999-0000"
           prepend-icon="mdi-phone"

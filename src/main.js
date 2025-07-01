@@ -19,6 +19,8 @@ import App from './App.vue'
 // Axios
 import axios from 'axios'
 
+import VueTheMask from 'vue-the-mask'
+
 
 // Styles
 import 'unfonts.css'
@@ -48,5 +50,7 @@ registerPlugins(app)
 
 // Use Pinia
 app.use(pinia)
+
+app.use(VueTheMask)
 
 app.mount('#app')
