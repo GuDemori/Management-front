@@ -7,7 +7,10 @@ export const useAuthStore = defineStore('auth', {
     user: null,
   }),
   getters: {
-    isLogged: (state) => !!state.token
+    isLogged: (state) => !!state.token,
+    isAdmin: (state) => state.user?.role === 'admin',
+    isCoworker: (state) => state.user?.role === 'coworker',
+    isClient: (state) => state.user?.role === 'client',
   },
   actions: {
     async login(email, password) {
