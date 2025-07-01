@@ -8,7 +8,7 @@
 
       <v-list>
         <v-list-item
-          v-if="isAdmin || isV1 || isClient"
+          v-if="isAdmin || isClient || isCoworker"
           to="/produtos"
           title="Produtos"
           prepend-icon="mdi-package-variant"
@@ -22,7 +22,7 @@
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isClient || isCoworker"
           to="/pedidos"
           title="Pedidos"
           prepend-icon="mdi-truck-fast"
@@ -36,7 +36,7 @@
           :active-class="'active-link'"
         />
         <v-list-item
-          v-if="isAdmin"
+          v-if="isAdmin || isCoworker"
           to="/estoque"
           title="Estoque"
           prepend-icon="mdi-package-variant-closed"
@@ -141,6 +141,7 @@ onMounted(async () => {
 const isAdmin = computed(() => userRole.value === 'admin')
 const isV1 = computed(() => userRole.value === 'v1')
 const isClient = computed(() => userRole.value === 'client')
+const isCoworker = computed(() => userRole.value === 'coworker')
 
 function logout() {
   auth.logout()
