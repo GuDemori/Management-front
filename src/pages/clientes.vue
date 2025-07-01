@@ -4,14 +4,32 @@
       <v-col>
         <v-toolbar flat>
           <v-toolbar-title>Clientes</v-toolbar-title>
+          <v-text-field
+            v-model="filters.name"
+            label="Buscar por nome"
+            prepend-inner-icon="mdi-magnify"
+            dense
+            hide-details
+            outlined
+            class="mr-4"
+            style="max-width: 200px"
+          />
+
+          <v-text-field
+            v-model="filters.city"
+            label="Buscar por cidade"
+            prepend-inner-icon="mdi-map-marker"
+            dense
+            hide-details
+            outlined
+            class="mr-4"
+            style="max-width: 200px"
+          />
           <v-spacer />
           <v-btn color="primary" @click="openDialog">Novo Cliente</v-btn>
-          <v-btn color="secondary" class="ml-2" @click="exportPDF">
+          <v-btn color="secondary" class="ml-2" @click="handlePDFExport">
             <v-icon left>mdi-file-pdf</v-icon>
             Exportar PDF
-          </v-btn>
-          <v-btn icon class="ml-2" @click="filterDialog = true">
-            <v-icon>mdi-filter-variant</v-icon>
           </v-btn>
         </v-toolbar>
       </v-col>
@@ -35,7 +53,18 @@
           :loading="loading"
           class="elevation-1"
           item-value="id"
+          no-data-text="Nenhum cliente encontrado"
+          loading-text="Carregando clientes..."
         >
+          <!-- Coluna: Estabelecimento -->
+          <template #item.establishment_type="{ item }">
+            {{ item.establishment_type || 'N/A' }} - {{ item.establishment_code }}
+          </template>
+
+          <!-- Coluna: Endereço -->
+          <template #item.address="{ item }">
+            {{ item.address }}, {{ item.number }}
+          </template>
           <template #item.actions="{ item }">
             <v-btn icon @click="edit(item)">
               <v-icon>mdi-pencil</v-icon>
@@ -54,7 +83,12 @@
           {{ form.id ? 'Editar Cliente' : 'Novo Cliente' }}
         </v-card-title>
         <v-card-text>
-          <ClientForm :form="form" :formRef="formRef" @submit="save" />
+          <ClientForm
+            ref="formRef"
+            :form="form"
+            :isEdit="!!form.id"
+            @submit="save"
+          />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -72,17 +106,14 @@
       <v-card>
         <v-card-title>Filtros</v-card-title>
         <v-card-text>
-          <v-checkbox v-model="filterOptions.fullName" label="Filtrar por Nome" />
+          <v-checkbox v-model="filterOptions.name" label="Filtrar por Nome" />
           <v-checkbox v-model="filterOptions.city" label="Filtrar por Cidade" />
-          <v-checkbox v-model="filterOptions.email" label="Filtrar por E-mail" />
-          <v-checkbox v-model="filterOptions.phone" label="Filtrar por Telefone" />
 
           <v-divider class="my-2" />
 
-          <v-text-field v-if="filterOptions.fullName" v-model="filters.fullName" label="Nome" clearable />
+          <v-text-field v-if="filterOptions.name" v-model="filters.name" label="Nome" clearable />
           <v-text-field v-if="filterOptions.city" v-model="filters.city" label="Cidade" clearable />
-          <v-text-field v-if="filterOptions.email" v-model="filters.email" label="E-mail" clearable />
-          <v-text-field v-if="filterOptions.phone" v-model="filters.phone" label="Telefone" clearable />
+
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -112,7 +143,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { useClientsStore } from '@/stores/clients'
 import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 import ClientForm from '@/components/clientForm.vue'
 
 const store = useClientsStore()
@@ -120,72 +151,84 @@ const formRef = ref(null)
 const dialog = ref(false)
 const filterDialog = ref(false)
 const successDialog = ref(false)
+const isEdit = ref(false)
 const error = ref('')
 
 const filterOptions = reactive({
-  fullName: false,
+  name: false,
   city: false,
-  email: false,
-  phone: false,
 })
 
 const filters = reactive({
-  fullName: '',
+  name: '',
   city: '',
-  email: '',
-  phone: '',
 })
 
 const headers = [
-  { text: 'ID', value: 'id', width: '80px' },
-  { text: 'Nome', value: 'fullName' },
-  { text: 'CPF/CNPJ', value: 'cpfCnpj' },
-  { text: 'Endereço', value: 'address' },
-  { text: 'Cidade', value: 'city' },
-  { text: 'Telefone', value: 'phone' },
-  { text: 'E-mail', value: 'email' },
-  { text: 'Data Nasc.', value: 'birthDate' },
-  { text: 'Ações', value: 'actions', sortable: false, width: '120px' },
+  { title: 'Nome', key: 'name' },
+  { title: 'Tipo de Estabelecimento', key: 'establishment_type' },
+  { title: 'Cidade', key: 'city' },
+  { title: 'Endereço', key: 'address' },
+  { title: 'Ações', key: 'actions', sortable: false }
 ]
 
 const form = reactive({
   id: null,
-  fullName: '',
-  cpfCnpj: '',
-  address: '',
-  city: '',
-  phone: '',
+  establishment_type_id: null,
+  name: '',
+  document: '',
   email: '',
-  birthDate: '',
+  password: '',
+  confirmPassword: '',
+  cep: '',
+  address: '',
+  number: '',
+  complement: '',
+  district: '',
+  city: '',
+  state: ''
 })
 
 onMounted(() => {
   store.fetchAll()
 })
 
-const filteredClients = computed(() => {
-  return store.list.filter(c => {
-    const byName = !filterOptions.fullName || c.fullName?.toLowerCase().includes(filters.fullName.toLowerCase())
-    const byCity = !filterOptions.city || c.city?.toLowerCase().includes(filters.city.toLowerCase())
-    const byEmail = !filterOptions.email || c.email?.toLowerCase().includes(filters.email.toLowerCase())
-    const byPhone = !filterOptions.phone || c.phone?.includes(filters.phone)
-    return byName && byCity && byEmail && byPhone
-  })
-})
+const filteredClients = computed(() =>
+  store.list
+    .filter(u => u.role === 'client')
+    .map(u => ({
+      ...u,
+      establishment_type: u.establishment_type?.name || 'N/A',
+      establishment_code: u.establishment_type?.code || 'N/A'
+    }))
+    .filter(u => {
+      const byName = !filters.name || u.name.toLowerCase().includes(filters.name.toLowerCase())
+      const byCity = !filters.city || u.city.toLowerCase().includes(filters.city.toLowerCase())
+      return byName && byCity
+    })
+)
 
 const loading = computed(() => store.loading)
 
+const getEmptyForm = () => ({
+  establishment_type_id: null,
+  name: '',
+  document: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  cep: '',
+  address: '',
+  number: '',
+  complement: '',
+  district: '',
+  city: '',
+  state: ''
+})
+
 function openDialog() {
-  Object.assign(form, {
-    id: null,
-    fullName: '',
-    cpfCnpj: '',
-    address: '',
-    city: '',
-    phone: '',
-    email: '',
-    birthDate: '',
-  })
+  Object.assign(form, getEmptyForm())
+  isEdit.value = false
   formRef.value?.resetValidation()
   dialog.value = true
 }
@@ -201,14 +244,19 @@ function closeDialog() {
 }
 
 async function save() {
-  if (!formRef.value.validate()) return
+  await nextTick()
+  if (!await formRef.value?.validate()) return
   error.value = ''
+
+  const payload = { ...form }
 
   try {
     if (form.id) {
-      await axios.put(`/api/clients/${form.id}`, form)
+      delete payload.password
+      delete payload.confirmPassword
+      await axios.put(`/api/clients/${form.id}`, payload)
     } else {
-      await axios.post('/api/clients', form)
+      await axios.post('/api/clients', payload)
     }
     await store.fetchAll()
     closeDialog()
@@ -220,7 +268,7 @@ async function save() {
 }
 
 async function remove(item) {
-  if (!confirm(`Deseja excluir ${item.fullName}?`)) return
+  if (!confirm(`Deseja excluir ${item.name}?`)) return
   try {
     await axios.delete(`/api/clients/${item.id}`)
     await store.fetchAll()
@@ -231,41 +279,36 @@ async function remove(item) {
 }
 
 function resetFilters() {
-  filters.fullName = ''
+  filters.name = ''
   filters.city = ''
-  filters.email = ''
-  filters.phone = ''
-  filterOptions.fullName = false
+
+  filterOptions.name = false
   filterOptions.city = false
-  filterOptions.email = false
-  filterOptions.phone = false
 }
 
-function exportPDF() {
+function handlePDFExport() {
   const doc = new jsPDF()
   doc.setFontSize(18)
   doc.text('Lista de Clientes', 14, 22)
 
-  const cols = headers.filter(h => h.value !== 'actions').map(h => h.text)
+  const headers = ['Nome', 'Tipo de Estabelecimento', 'Cidade', 'Endereço']
+
   const rows = filteredClients.value.map(c => [
-    c.id,
-    c.fullName,
-    c.cpfCnpj,
-    c.address,
+    c.name,
+    `${c.establishment_type} - ${c.establishment_code}`,
     c.city,
-    c.phone,
-    c.email,
-    c.birthDate,
+    `${c.address}, ${c.number}`
   ])
 
-  doc.autoTable({
-    head: [cols],
+  autoTable(doc, {
+    head: [headers],
     body: rows,
     startY: 30,
     styles: { fontSize: 10 },
-    headStyles: { fillColor: [41, 128, 185] },
+    headStyles: { fillColor: [41, 128, 185] }
   })
 
   doc.save('clientes.pdf')
 }
+
 </script>

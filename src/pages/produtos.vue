@@ -55,7 +55,7 @@
       hide-details
       outlined
     />
-  </v-col>
+  </v-col>''
 
   <v-col cols="12">
     <v-select

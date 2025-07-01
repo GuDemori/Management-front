@@ -10,7 +10,7 @@ export const useClientsStore = defineStore('clients', {
     async fetchAll() {
       this.loading = true
       try {
-        const { data } = await axios.get('/api/users')
+        const { data } = await axios.get('/api/clients')
         this.list = Array.isArray(data)
           ? data
           : Array.isArray(data.data)
