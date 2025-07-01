@@ -2,53 +2,41 @@
 <template>
   <v-container fluid class="py-4">
     <!-- Toolbar -->
-    <v-row class="mb-2">
-      <v-col>
-        <v-toolbar flat>
-          <v-toolbar-title>Fornecedores</v-toolbar-title>
-          <v-spacer />
-          <v-btn color="primary" @click="openDialog">Novo Fornecedor</v-btn>
-          <v-btn color="secondary" class="ml-2" @click="exportPDF">
-            <v-icon left>mdi-file-pdf</v-icon> Exportar PDF
-          </v-btn>
-          <v-btn icon class="ml-2" @click="filterDialog = true">
-            <v-icon>mdi-filter-variant</v-icon>
-          </v-btn>
-        </v-toolbar>
-      </v-col>
-    </v-row>
+    <v-toolbar flat class="mb-4 d-flex align-center" style="gap: 12px; flex-wrap: wrap">
+      <v-toolbar-title class="text-white font-weight-medium"
+        style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
+        Fornecedores
+      </v-toolbar-title>
+      <v-spacer />
+      <v-text-field v-model="filters.name" label="Buscar por Nome" prepend-inner-icon="mdi-magnify" hide-details
+        outlined dense style="max-width: 240px" />
+
+      <v-text-field v-model="filters.phone" label="Buscar por Telefone" prepend-inner-icon="mdi-magnify" hide-details
+        outlined dense style="max-width: 240px" />
+      <v-btn text color="primary" class="font-weight-bold" @click="openDialog">
+        NOVO FORNECEDOR
+      </v-btn>
+
+      <v-btn text color="success" class="font-weight-bold" @click="exportPDF">
+        EXPORTAR PDF
+      </v-btn>
+    </v-toolbar>
 
     <!-- Alerta de erro -->
-    <v-alert
-      v-if="error"
-      type="error"
-      dismissible
-      class="mb-4"
-      @click:close="error = ''"
-    >
+    <v-alert v-if="error" type="error" dismissible class="mb-4" @click:close="error = ''">
       {{ error }}
     </v-alert>
 
     <!-- Data-table com cabeçalho no slot top -->
-    <v-data-table
-      :headers="headers"
-      :items="filteredSuppliers"
-      :loading="loading"
-      hide-default-header
-      class="elevation-1"
-      item-value="id"
-    >
+    <v-data-table :headers="headers" :items="filteredSuppliers" :loading="loading" hide-default-header
+      class="elevation-1" item-value="id">
       <!-- Slot TOP: cabeçalho personalizado -->
       <template #top>
-        <v-row no-gutters class="data-table-header">
-          <v-col cols="1"><strong>ID</strong></v-col>
-          <v-col cols="2"><strong>Nome</strong></v-col>
-          <v-col cols="2"><strong>Empresa</strong></v-col>
-          <v-col cols="2"><strong>Documento</strong></v-col>
-          <v-col cols="1"><strong>Cidade</strong></v-col>
-          <v-col cols="2"><strong>Telefone</strong></v-col>
-          <v-col cols="1"><strong>E-mail</strong></v-col>
-          <v-col cols="1" class="text-center"><strong>Ações</strong></v-col>
+        <v-row no-gutters class="custom-table-header">
+          <v-col v-for="(header, index) in headers" :key="index" :style="getColStyle(header)"
+            :class="{ 'text-center': header.value === 'actions' }">
+            <strong>{{ header.text }}</strong>
+          </v-col>
         </v-row>
       </template>
 
@@ -89,35 +77,8 @@
       <v-card>
         <v-card-title>Filtros</v-card-title>
         <v-card-text>
-          <v-checkbox v-model="filterOptions.name" label="Filtrar por Nome" />
-          <v-checkbox v-model="filterOptions.company_name" label="Filtrar por Empresa" />
-          <v-checkbox v-model="filterOptions.email" label="Filtrar por E-mail" />
-          <v-checkbox v-model="filterOptions.phone" label="Filtrar por Telefone" />
-          <v-divider class="my-2" />
-          <v-text-field
-            v-if="filterOptions.name"
-            v-model="filters.name"
-            label="Nome"
-            clearable
-          />
-          <v-text-field
-            v-if="filterOptions.company_name"
-            v-model="filters.company_name"
-            label="Empresa"
-            clearable
-          />
-          <v-text-field
-            v-if="filterOptions.email"
-            v-model="filters.email"
-            label="E-mail"
-            clearable
-          />
-          <v-text-field
-            v-if="filterOptions.phone"
-            v-model="filters.phone"
-            label="Telefone"
-            clearable
-          />
+          <v-text-field v-model="filters.name" label="Nome" clearable />
+          <v-text-field v-model="filters.phone" label="Telefone" clearable />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -166,6 +127,8 @@ import { useSuppliersStore } from '@/stores/suppliers'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import SupplierForm from '@/components/supplierForm.vue'
+import logoBase64 from '@/assets/logo.png'
+
 
 const store = useSuppliersStore()
 const formRef = ref(null)
@@ -184,8 +147,6 @@ const filterOptions = reactive({
 })
 const filters = reactive({
   name: '',
-  company_name: '',
-  email: '',
   phone: '',
 })
 
@@ -199,6 +160,13 @@ const headers = [
   { text: 'E-mail', value: 'email' },
   { text: 'Ações', value: 'actions', sortable: false, width: '120px' },
 ]
+
+function getColStyle(header) {
+  return header.width
+    ? `min-width: ${header.width}; max-width: ${header.width};`
+    : ''
+}
+
 
 const form = reactive({
   id: null,
@@ -215,15 +183,12 @@ onMounted(() => store.fetchAll())
 
 const filteredSuppliers = computed(() =>
   store.list.filter(s => {
-    const byName = !filterOptions.name || s.name.toLowerCase().includes(filters.name.toLowerCase())
-    const byCompany =
-      !filterOptions.company_name ||
-      s.company_name.toLowerCase().includes(filters.company_name.toLowerCase())
-    const byEmail = !filterOptions.email || s.email.toLowerCase().includes(filters.email.toLowerCase())
-    const byPhone = !filterOptions.phone || s.phone.includes(filters.phone)
-    return byName && byCompany && byEmail && byPhone
+    const byName = s.name.toLowerCase().includes(filters.name.toLowerCase())
+    const byPhone = s.phone.includes(filters.phone)
+    return byName && byPhone
   })
 )
+
 const loading = computed(() => store.loading)
 
 function openDialog() {
@@ -232,7 +197,6 @@ function openDialog() {
     name: '',
     company_name: '',
     document: '',
-    address: '',
     city: '',
     phone: '',
     email: '',
@@ -303,52 +267,101 @@ async function removeConfirmed() {
 }
 
 function resetFilters() {
-  Object.assign(filters, { name: '', company_name: '', email: '', phone: '' })
-  Object.assign(filterOptions, { name: false, company_name: false, email: false, phone: false })
+  Object.assign(filters, { name: '', phone: '' })
 }
+
 
 function exportPDF() {
   const doc = new jsPDF()
-  const cols = headers.filter(h => h.value !== 'actions').map(h => h.text)
-  const rows = filteredSuppliers.value.map(s => [
-    s.id,
-    s.name,
-    s.company_name,
-    s.document,
-    s.address,
-    s.city,
-    s.phone,
-    s.email,
-  ])
+  const logo = new Image()
+  logo.src = new URL('@/assets/logo.png', import.meta.url).href
 
-  autoTable(doc, {
-    head: [cols],
-    body: rows,
-    startY: 30,
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [41, 128, 185] },
-  })
+  logo.onload = () => {
+    const logoX = 14
+    const logoY = 12
+    const logoWidth = 30
+    const logoHeight = 20
 
-  doc.setFontSize(18)
-  doc.text('Lista de Fornecedores', 14, 22)
-  doc.save('fornecedores.pdf')
+    doc.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight)
+
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Lista de Fornecedores', logoX + logoWidth + 10, logoY + 8)
+
+    const dataHora = new Date().toLocaleString('pt-BR')
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Emitido em: ${dataHora}`, 200 - 14, logoY + 8, { align: 'right' })
+
+    doc.setDrawColor(180)
+    doc.line(14, logoY + logoHeight + 2, 200 - 14, logoY + logoHeight + 2)
+
+    const cols = headers.filter(h => h.value !== 'actions').map(h => h.text)
+    const rows = filteredSuppliers.value.map(s => [
+      s.id,
+      s.name,
+      s.company_name,
+      s.document,
+      s.city,
+      s.phone,
+      s.email,
+    ])
+
+    autoTable(doc, {
+      head: [cols],
+      body: rows,
+      startY: logoY + logoHeight + 8,
+      margin: { left: 14, right: 14 },
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [33, 150, 243], // azul moderado
+        halign: 'center',
+        valign: 'middle',
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages()
+        doc.setFontSize(9)
+        doc.text(`Página ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
+      },
+    })
+
+    doc.save('fornecedores.pdf')
+  }
 }
 </script>
 
 <style scoped>
-.data-table-header {
-  background-color: #424242;
-  color: white;
-  padding: 8px 16px;
-  border-bottom: 1px solid #616161;
+.custom-table-header {
+  background: linear-gradient(90deg, #2c2c2c, #1e1e1e);
+  /* degrade discreto */
+  color: #f1f1f1;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-bottom: 2px solid #444;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-radius: 6px 6px 0 0;
 }
-.data-table-header > .v-col {
+
+.custom-table-header .v-col {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
 }
+
 .data-table-header strong {
   color: white;
 }
+
 .v-data-table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }

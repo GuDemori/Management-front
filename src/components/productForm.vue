@@ -24,7 +24,8 @@
           v-model="form.imageFile"
           label="Imagem do Produto"
           accept="image/*"
-          prepend-icon="mdi-image"
+          prepend-icon=""
+          prepend-inner-icon="mdi-image"
           show-size
         >
           <template #prepend>

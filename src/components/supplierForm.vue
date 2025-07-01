@@ -37,7 +37,7 @@
         <v-text-field
           v-model="form.document"
           label="Documento (CPF/CNPJ)"
-          :rules="documentRules"
+          :rules="[validateDocument]"
           placeholder="Ex.: 00.000.000/0000-00"
           prepend-icon="mdi-card-account-details"
           variant="outlined"
@@ -127,4 +127,15 @@ const company_nameRules = [
 const cityRules = [
   v => !!v || 'Cidade é obrigatória'
 ]
+import { isValidCPF, isValidCNPJ } from '@/utils/validators'
+
+function validateDocument(value) {
+  if (!value) return 'Documento obrigatório'
+  const clean = value.replace(/[^\d]/g, '')
+  if (clean.length === 11 && !isValidCPF(clean)) return 'CPF inválido'
+  if (clean.length === 14 && !isValidCNPJ(clean)) return 'CNPJ inválido'
+  if (![11, 14].includes(clean.length)) return 'Deve ter 11 ou 14 dígitos'
+  return true
+}
+
 </script>
