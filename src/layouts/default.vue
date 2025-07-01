@@ -141,7 +141,7 @@ const isClient = computed(() => userRole.value === 'client')
 
 function logout() {
   localStorage.removeItem('authToken')
-  router.push({ name: 'LoginPage' })
+  router.push('/login')
 }
 
 </script>
