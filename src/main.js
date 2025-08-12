@@ -23,7 +23,7 @@ import axios from 'axios'
 // Styles
 import 'unfonts.css'
 
-axios.defaults.baseURL = import.meta.env.VITE_API_URL
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '/api'
 
 axios.interceptors.request.use(
     (config) => {
