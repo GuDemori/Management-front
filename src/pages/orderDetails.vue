@@ -129,7 +129,7 @@ watch(success, (val) => {
 
 async function updateStatus(newStatus) {
     try {
-        await axios.put(`/api/orders/${Number(order.value.id)}`,
+        await axios.put(`/orders/${Number(order.value.id)}`,
             { status: newStatus })
         success.value = 'Status atualizado com sucesso!'
     } catch (e) {

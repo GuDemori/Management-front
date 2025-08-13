@@ -10,7 +10,7 @@ export const useOrdersStore = defineStore('orders', {
         async fetchAll() {
             this.loading = true
             try {
-                const { data } = await axios.get('/api/orders')
+                const { data } = await axios.get('/orders')
                 this.list = data.data || data
             } catch (e) {
                 console.error('Erro ao buscar pedidos:', e)
@@ -22,7 +22,7 @@ export const useOrdersStore = defineStore('orders', {
 
         async update(id, payload) {
             try {
-                const { data } = await axios.put(`/api/orders/${id}`, payload)
+                const { data } = await axios.put(`/orders/${id}`, payload)
                 const index = this.list.findIndex(o => o.id === id)
                 if (index !== -1) this.list[index] = data
             } catch (e) {
@@ -32,7 +32,7 @@ export const useOrdersStore = defineStore('orders', {
         },
 
         async delete(id) {
-            await axios.delete(`/api/orders/${id}`)
+            await axios.delete(`/orders/${id}`)
             this.list = this.list.filter(o => o.id !== id)
         }
     }

@@ -12,7 +12,7 @@ export const useUsersStore = defineStore('users', {
         async fetchUsers() {
             this.loading = true
             try {
-                const res = await axios.get('/api/users/all')
+                const res = await axios.get('/users/all')
                 this.list = res.data
             } catch (e) {
                 this.error = 'Erro ao buscar usuários.'

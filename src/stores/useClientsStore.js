@@ -7,7 +7,7 @@ export const useClientsStore = defineStore('clients', {
         async fetchAll() {
             this.loading = true
             try {
-                const { data } = await axios.get('/api/clients')
+                const { data } = await axios.get('/clients')
                 this.list = data
             } catch (err) {
                 console.error('Erro ao buscar clientes:', err)

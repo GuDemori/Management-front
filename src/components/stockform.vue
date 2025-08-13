@@ -69,9 +69,9 @@ const save = async () => {
   if (!valid) return
   try {
     if (form.value.id) {
-      await axios.put(`/api/stock/${form.value.id}`, form.value)
+      await axios.put(`/stock/${form.value.id}`, form.value)
     } else {
-      await axios.post('/api/stock', form.value)
+      await axios.post('/stock', form.value)
     }
     emit('saved')
     emit('close')

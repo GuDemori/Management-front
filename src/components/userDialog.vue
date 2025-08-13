@@ -232,7 +232,7 @@ const states = [
 
 const fetchEstablishmentTypes = async () => {
   try {
-    const { data } = await axios.get('/api/establishment-types')
+    const { data } = await axios.get('/establishment-types')
     establishmentTypes.value = data
   } catch {
     error.value = 'Erro ao buscar tipos de estabelecimento.'
@@ -266,9 +266,9 @@ const save = async () => {
 
     if (props.isEdit) {
       delete payload.password
-      await axios.put(`/api/users/${props.form.id}`, payload)
+      await axios.put(`/users/${props.form.id}`, payload)
     } else {
-      await axios.post('/api/users', payload)
+      await axios.post('/users', payload)
     }
 
     emit('update:modelValue', false)

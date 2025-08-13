@@ -293,7 +293,7 @@ onMounted(() => {
 
 const fetchEstablishmentTypes = async () => {
   try {
-    const { data } = await axios.get('/api/establishment-types')
+    const { data } = await axios.get('/establishment-types')
     establishmentTypes.value = data
   } catch {
     console.error('Erro ao buscar tipos de estabelecimento')
@@ -334,7 +334,7 @@ const register = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
-    await axios.post('/api/register', {
+    await axios.post('/register', {
       establishment_type_id: establishment_type_id.value,
       name: name.value,
       email: email.value,

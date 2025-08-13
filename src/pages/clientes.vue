@@ -254,9 +254,9 @@ async function save() {
     if (form.id) {
       delete payload.password
       delete payload.confirmPassword
-      await axios.put(`/api/clients/${form.id}`, payload)
+      await axios.put(`/clients/${form.id}`, payload)
     } else {
-      await axios.post('/api/clients', payload)
+      await axios.post('/clients', payload)
     }
     await store.fetchAll()
     closeDialog()
@@ -270,7 +270,7 @@ async function save() {
 async function remove(item) {
   if (!confirm(`Deseja excluir ${item.name}?`)) return
   try {
-    await axios.delete(`/api/clients/${item.id}`)
+    await axios.delete(`/clients/${item.id}`)
     await store.fetchAll()
   } catch (e) {
     console.error(e)

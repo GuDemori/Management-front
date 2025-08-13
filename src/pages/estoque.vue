@@ -73,7 +73,7 @@ async function fetchStocks() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await axios.get('/api/stock')
+    const { data } = await axios.get('/stock')
     stocks.value = data
   } catch (err) {
     error.value = err.response?.data?.message || 'Não foi possível carregar o estoque.'
@@ -107,7 +107,7 @@ const editStock = (stock) => {
 async function deleteStock(id) {
   if (!confirm('Deseja realmente inativar este estoque?')) return
   axios
-    await axios.put(`/api/stock/${id}/deactivate`)
+    await axios.put(`/stock/${id}/deactivate`)
     .then(() => fetchStocks())
     .catch(() => {
       error.value = 'Erro ao inativar estoque.'

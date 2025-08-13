@@ -163,7 +163,7 @@ async function submitOrder() {
             }))
         }
 
-        await axios.post('/api/orders', payload)
+        await axios.post('/orders', payload)
         cartStore.items = []
         router.push('/produtos')
     } catch (err) {
@@ -177,7 +177,7 @@ onMounted(async () => {
 
     if (['admin', 'coworker'].includes(authStore.user.role)) {
         try {
-            const resp = await axios.get('/api/clients')
+            const resp = await axios.get('/clients')
 
             const users = Array.isArray(resp.data) ? resp.data : []
             clients.value = users

@@ -186,7 +186,7 @@ const rules = {
 
 const fetchEstablishmentTypes = async () => {
   try {
-    const { data } = await axios.get('/api/establishment-types')
+    const { data } = await axios.get('/establishment-types')
     establishmentTypes.value = data
   } catch {
     console.error('Erro ao buscar tipos de estabelecimento')

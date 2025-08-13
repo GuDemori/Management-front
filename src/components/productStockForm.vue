@@ -57,8 +57,8 @@ const rules = {
 const loadOptions = async () => {
     try {
         const [productsRes, stocksRes] = await Promise.all([
-            axios.get('/api/products'),
-            axios.get('/api/stock'),
+            axios.get('/products'),
+            axios.get('/stock'),
         ])
         products.value = productsRes.data
         stocks.value = stocksRes.data.filter(s => s.isActive)
@@ -69,7 +69,7 @@ const loadOptions = async () => {
 
 const fetchStocks = async () => {
     try {
-        const { data } = await axios.get('/api/stock')
+        const { data } = await axios.get('/stock')
         stockOptions.value = data
             .filter(s => s.isActive)
             .map(s => ({
@@ -105,9 +105,9 @@ const save = async () => {
 
     try {
         if (form.value.id) {
-            await axios.put(`/api/product-stock/${form.value.id}`, form.value)
+            await axios.put(`/product-stock/${form.value.id}`, form.value)
         } else {
-            await axios.post('/api/product-stock', form.value)
+            await axios.post('/product-stock', form.value)
         }
         emit('saved')
         emit('close')

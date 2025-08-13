@@ -181,7 +181,7 @@ const statusOptions = [
 onMounted(async () => {
   try {
     await store.fetchAll()
-    const res = await axios.get('/api/products')
+    const res = await axios.get('/products')
     products.value = res.data
 
   } catch (e) {

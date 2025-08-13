@@ -235,9 +235,9 @@ async function save() {
 
   try {
     if (form.id) {
-      await axios.put(`/api/suppliers/${form.id}`, form)
+      await axios.put(`/suppliers/${form.id}`, form)
     } else {
-      await axios.post('/api/suppliers', form)
+      await axios.post('/suppliers', form)
     }
 
     await store.fetchAll()
@@ -259,7 +259,7 @@ function confirmDelete(item) {
 async function removeConfirmed() {
   deleteDialog.value = false
   try {
-    await axios.delete(`/api/suppliers/${deleteSupplier.value.id}`)
+    await axios.delete(`/suppliers/${deleteSupplier.value.id}`)
     await store.fetchAll()
   } catch {
     error.value = 'Erro ao excluir fornecedor.'

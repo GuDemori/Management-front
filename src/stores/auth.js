@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     async login(email, password) {
-      const { data } = await axios.post('/api/login', { email, password })
+      const { data } = await axios.post('/login', { email, password })
       this.token = data.token
       localStorage.setItem('authToken', data.token)
       localStorage.setItem('refreshToken', data.refresh_token)
@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', {
       const refreshToken = localStorage.getItem('refreshToken')
       if (refreshToken) {
         try {
-          const { data } = await axios.post('/api/refresh', { refresh_token: refreshToken })
+          const { data } = await axios.post('/refresh', { refresh_token: refreshToken })
           this.token = data.access_token
           localStorage.setItem('authToken', data.access_token)
           localStorage.setItem('refreshToken', data.refresh_token)
@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
     async fetchUser() {
       if (!this.token) return;
       try {
-        const { data } = await axios.get('/api/user', {
+        const { data } = await axios.get('/user', {
           headers: {
             Authorization: `Bearer ${this.token}`,
           }

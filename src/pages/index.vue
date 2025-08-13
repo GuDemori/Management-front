@@ -99,7 +99,7 @@ onMounted(async () => {
   if (publicNames.includes(route.name)) return
 
   try {
-    const { data } = await axios.get('/api/users')
+    const { data } = await axios.get('/users')
     userRole.value  = data.role
   } catch {
     userRole.value = null

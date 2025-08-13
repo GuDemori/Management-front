@@ -111,7 +111,7 @@ function formatRole(role) {
 
 async function fetchUsers() {
   loading.value = true
-  await axios.get('/api/users/all')
+  await axios.get('/users/all')
     .then(res => {
       users.value = res.data.filter(u => u.is_active)
     })
@@ -138,7 +138,7 @@ async function deactivateUser() {
   if (!userToRemove.value) return
 
   try {
-    await axios.delete(`/api/users/${userToRemove.value.id}`)
+    await axios.delete(`/users/${userToRemove.value.id}`)
     confirmDialog.value = false
     userToRemove.value = null
     await fetchUsers()

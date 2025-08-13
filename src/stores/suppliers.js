@@ -12,7 +12,7 @@ export const useSuppliersStore = defineStore('suppliers', {
     async fetchAll() {
       this.loading = true
       try {
-        const { data } = await axios.get('/api/suppliers')
+        const { data } = await axios.get('/suppliers')
         this.list = data
       } catch (error) {
         console.error('Erro ao buscar fornecedores:', error)

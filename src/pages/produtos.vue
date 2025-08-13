@@ -422,13 +422,13 @@ onMounted(async () => {
 
   await store.fetchAll()
 
-  const sup = await axios.get('/api/suppliers')
+  const sup = await axios.get('/suppliers')
   suppliers.value = sup.data.data || sup.data
 
-  const cat = await axios.get('/api/product-categories')
+  const cat = await axios.get('/product-categories')
   categories.value = cat.data.data || cat.data
 
-  const { data } = await axios.get('/api/stock')
+  const { data } = await axios.get('/stock')
   const allStocks = data.data || data
 
   stock.value = allStocks
@@ -567,11 +567,11 @@ async function save() {
     if (form.id) {
       resp = await axios.post(`/api/products/${form.id}?_method=PUT`, formData)
     } else {
-      resp = await axios.post('/api/products', formData)
+      resp = await axios.post('/products', formData)
       form.id = resp.data.id
     }
 
-    await axios.put(`/api/products/${form.id}/nicknames`, {
+    await axios.put(`/products/${form.id}/nicknames`, {
       nicknames: form.nicknames
     })
 
@@ -589,7 +589,7 @@ async function remove() {
   if (!productToDelete.value) return
 
   try {
-    await axios.put(`/api/products/${productToDelete.value.id}/deactivate`)
+    await axios.put(`/products/${productToDelete.value.id}/deactivate`)
     await store.fetchAll()
     confirmDeleteDialog.value = false
     productToDelete.value = null

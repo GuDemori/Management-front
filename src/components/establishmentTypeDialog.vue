@@ -112,7 +112,7 @@ const rules = {
 const fetchTypes = async () => {
   loading.value = true
   try {
-    const { data } = await axios.get('/api/establishment-types')
+    const { data } = await axios.get('/establishment-types')
     types.value = data
   } catch (err) {
     error.value = 'Erro ao buscar tipos.'
@@ -143,13 +143,13 @@ const save = async () => {
 
   try {
     if (form.value.id) {
-      const { status } = await axios.put(`/api/establishment-types/${form.value.id}`, form.value)
+      const { status } = await axios.put(`/establishment-types/${form.value.id}`, form.value)
       if (status === 200) {
         closeForm()
         fetchTypes()
       }
     } else {
-      const { status } = await axios.post('/api/establishment-types', form.value)
+      const { status } = await axios.post('establishment-types', form.value)
       if (status === 201) {
         closeForm()
         fetchTypes()
@@ -168,7 +168,7 @@ const askDelete = (id) => {
 
 const confirmDelete = async () => {
   try {
-    await axios.delete(`/api/establishment-types/${itemToDelete.value}`)
+    await axios.delete(`/establishment-types/${itemToDelete.value}`)
     confirmDeleteDialog.value = false
     fetchTypes()
   } catch {
