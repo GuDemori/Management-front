@@ -9,18 +9,16 @@
             }
         }
     ],
-    "rewrites": [
-        {
-            "source": "/api/:path*",
-            "destination": "http://18.233.170.107:8000/api/:path*"
-        }
-    ],
     "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "http://18.233.170.107:8000/api/$1"
+        },
         {
             "handle": "filesystem"
         },
         {
-            "src": "/.*",
+            "src": "/(.*)",
             "dest": "/index.html"
         }
     ]
